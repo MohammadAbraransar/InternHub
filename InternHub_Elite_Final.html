@@ -1,0 +1,2946 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InternHub Elite | Neural Intelligence Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <!-- TensorFlow.js for Face Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --emerald: #10b981;
+            --dark: #020617;
+            --accent: #818cf8;
+            --neural: #f43f5e;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--dark);
+            color: #f8fafc;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #818cf8 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+        }
+
+        .sidebar-active {
+            background: rgba(99, 102, 241, 0.15);
+            border-left: 4px solid var(--primary);
+            color: #818cf8;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: var(--primary);
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .typing::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .nav-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        /* --- ROBUST AGENT UI --- */
+        #robust-agent-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #6366f1 0%, #f43f5e 100%);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 500;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #robust-agent-btn:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        #agent-panel {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 400px;
+            height: 600px;
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: panelFade 0.4s ease-out;
+        }
+
+        @keyframes panelFade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #resume-paper,
+            #resume-paper * {
+                visibility: visible;
+            }
+
+            #resume-paper {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 2cm;
+                box-shadow: none;
+                border: none;
+            }
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+        }
+
+        /* --- RESPONSIVE DESIGN SYSTEM --- */
+        /* Mobile-first approach with progressive enhancement */
+
+        /* Mobile Devices (Portrait) */
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto;
+            }
+
+            /* Hide sidebar on mobile, show hamburger menu */
+            #main-hub aside {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                padding: 20px;
+            }
+
+            #main-hub aside.mobile-open {
+                left: 0;
+            }
+
+            /* Mobile overlay */
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 999;
+                backdrop-filter: blur(4px);
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+
+            /* Adjust main content */
+            #main-hub {
+                flex-direction: column;
+                padding: 12px;
+                gap: 12px;
+            }
+
+            #main-hub main {
+                gap: 12px;
+            }
+
+            /* Smaller header on mobile */
+            #main-hub header {
+                height: auto;
+                padding: 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            #view-title {
+                font-size: 20px !important;
+            }
+
+            /* Grid layouts become single column */
+            .grid.grid-cols-2,
+            .grid.grid-cols-3,
+            .grid.md\:grid-cols-2,
+            .grid.md\:grid-cols-3,
+            .grid.lg\:grid-cols-2,
+            .grid.lg\:grid-cols-3,
+            .grid.lg\:grid-cols-5 {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Reduce padding on mobile */
+            .glass {
+                padding: 16px !important;
+                border-radius: 20px;
+            }
+
+            /* Smaller fonts */
+            h1 {
+                font-size: 36px !important;
+            }
+
+            h2 {
+                font-size: 24px !important;
+            }
+
+            h3 {
+                font-size: 18px !important;
+            }
+
+            /* Touch-friendly buttons */
+            button {
+                min-height: 44px;
+                padding: 12px 20px !important;
+            }
+
+            /* Auth container adjustments */
+            #auth-container {
+                padding: 20px;
+            }
+
+            #auth-container .glass {
+                padding: 24px !important;
+            }
+
+            /* Modal adjustments */
+            #modal-container .glass {
+                max-width: 95vw !important;
+                height: 90vh !important;
+            }
+
+            #modal-body {
+                grid-template-columns: 1fr !important;
+                padding: 20px !important;
+            }
+
+            /* AI Interview layout */
+            .grid.lg\:grid-cols-3 {
+                grid-template-columns: 1fr !important;
+                height: auto !important;
+            }
+
+            /* Video controls always visible on mobile */
+            #main-user-cam+div+div {
+                opacity: 1 !important;
+            }
+
+            /* Resume builder mobile */
+            #resume-paper {
+                padding: 20px !important;
+                font-size: 12px;
+            }
+
+            /* Table responsive */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+
+        /* Tablet Devices */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #main-hub aside {
+                width: 240px;
+                padding: 24px;
+            }
+
+            #main-hub {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .glass {
+                padding: 20px !important;
+            }
+
+            /* 2-column grids on tablet */
+            .grid.lg\:grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        /* Desktop optimizations */
+        @media (min-width: 1025px) {
+
+            /* Ensure smooth animations on desktop */
+            * {
+                transition-duration: 0.3s;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            #main-hub header {
+                height: auto;
+                padding: 12px 16px;
+            }
+
+            .grid.lg\:grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+        }
+
+        /* Device indicator badge */
+        .device-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            z-index: 500;
+            opacity: 0;
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            10%,
+            90% {
+                opacity: 1;
+            }
+        }
+
+        /* --- MAX LEVEL AGENT UI --- */
+        .neural-wave {
+            height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 0 10px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 10px;
+            transition: height 0.1s ease;
+        }
+
+        .analyzer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            margin: 10px;
+        }
+
+        .analyzer-stat {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .recording-pulse {
+            animation: recPulse 1.5s infinite;
+        }
+
+        @keyframes recPulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen bg-[#020617] flex flex-col items-center justify-center">
+
+    <!-- 1. AUTH SYSTEM -->
+    <div id="auth-container"
+        class="absolute inset-0 z-[100] flex items-center justify-center bg-[radial-gradient(circle_at_top_right,#1e1b4b,#020617)] p-4">
+        <div class="w-full max-w-lg text-center animate-in fade-in zoom-in duration-700">
+            <div
+                class="w-24 h-24 gradient-bg rounded-[32px] mx-auto mb-8 flex items-center justify-center text-5xl font-black text-white shadow-2xl italic">
+                iH</div>
+            <h1 class="text-6xl font-black tracking-tight mb-3 uppercase text-white">Intern<span
+                    class="gradient-text">Hub</span></h1>
+            <p class="text-slate-500 font-bold tracking-[0.5em] text-[10px] mb-12 uppercase">Elite Neural Intelligence
+            </p>
+
+            <div class="glass p-12 space-y-6 border-white/5 bg-white/[0.02] text-left">
+                <div class="flex gap-4 p-1 bg-white/5 rounded-2xl mb-4">
+                    <button id="tab-login" onclick="toggleAuth('login')"
+                        class="flex-1 py-3 rounded-xl font-bold transition-all text-xs uppercase tracking-widest bg-white/10 text-white">Sign
+                        In</button>
+                    <button id="tab-signup" onclick="toggleAuth('signup')"
+                        class="flex-1 py-3 rounded-xl font-bold transition-all text-xs uppercase tracking-widest text-slate-500">Sign
+                        Up</button>
+                </div>
+                <!-- LOGIN VIEW -->
+                <div id="view-login" class="space-y-6">
+                    <input id="login-email" type="email" oninput="predictRole('login')"
+                        placeholder="Email (@anurag.edu.in)"
+                        class="w-full bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold outline-none focus:border-indigo-500">
+
+                    <div id="login-role-preview"
+                        class="hidden opacity-0 px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-500 translate-y-2">
+                        <div class="w-1.5 h-1.5 rounded-full pulse"></div>
+                        Neural Path: <span id="login-role-name">Calculating...</span>
+                    </div>
+
+                    <input id="login-pass" type="password" placeholder="Password"
+                        class="w-full bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold outline-none focus:border-indigo-500">
+                    <button onclick="performLogin()"
+                        class="w-full gradient-bg py-5 rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">ESTABLISH
+                        CONNECTION</button>
+                    <button onclick="showForgot()"
+                        class="text-[10px] text-indigo-400 font-bold uppercase block text-center">Forgot
+                        Credentials?</button>
+                </div>
+
+                <!-- SIGNUP VIEW -->
+                <div id="view-signup" class="hidden space-y-6">
+                    <input id="reg-name" type="text" placeholder="Full Name"
+                        class="w-full bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold outline-none group focus:border-emerald-500">
+                    <input id="reg-email" type="email" oninput="predictRole('reg')" placeholder="Email (@anurag.edu.in)"
+                        class="w-full bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold outline-none group focus:border-emerald-500">
+
+                    <div id="reg-role-preview"
+                        class="hidden opacity-0 px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-500 translate-y-2">
+                        <div class="w-1.5 h-1.5 rounded-full pulse"></div>
+                        Identity Sync: <span id="reg-role-name">Analyzing...</span>
+                    </div>
+
+                    <input id="reg-pass" type="password" placeholder="Set Password"
+                        class="w-full bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold outline-none">
+
+                    <button onclick="performSignup()"
+                        class="w-full gradient-bg py-5 rounded-2xl font-black text-xs uppercase text-white shadow-xl">INITIALIZE
+                        ACCOUNT</button>
+                </div>
+
+                <div id="view-forgot" class="hidden space-y-6">
+                    <h3 class="text-xl font-black text-white italic">Cloud Recovery</h3>
+                    <input id="forgot-email" type="email" placeholder="Institutional Email"
+                        class="w-full bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold">
+                    <button onclick="sendOTP()"
+                        class="w-full bg-indigo-600 py-5 rounded-2xl text-white font-black text-xs">SEND CODE</button>
+                </div>
+
+                <div id="view-otp" class="hidden space-y-6">
+                    <input id="otp-input" type="text" maxlength="6"
+                        class="w-full bg-white/10 border-2 border-indigo-500 text-center py-4 text-2xl font-black text-white rounded-2xl tracking-[1em]">
+                    <button onclick="verifyOTP()"
+                        class="w-full gradient-bg py-5 rounded-2xl font-black text-white text-xs">VERIFY</button>
+                </div>
+
+                <div id="view-reset" class="hidden space-y-6">
+                    <input id="reset-pass" type="password" placeholder="New Password"
+                        class="w-full bg-white/10 border-white/10 rounded-2xl px-6 py-4 text-white font-bold">
+                    <button onclick="finalizeReset()"
+                        class="w-full gradient-bg py-5 rounded-2xl text-white font-black text-xs">RESET</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN HUB -->
+    <!-- Mobile Menu Button -->
+    <div class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- Device Indicator (shows on load) -->
+    <div id="device-indicator" class="device-indicator"></div>
+
+    <!-- AI Proctoring System -->
+    <div id="proctoring-overlay" class="proctoring-overlay"></div>
+    <div id="violation-alert" class="violation-alert">
+        <div style="text-align: center;">
+            <div style="font-size: 60px; margin-bottom: 20px;">🚨</div>
+            <h2 id="violation-title"
+                style="font-size: 32px; font-weight: 900; margin-bottom: 16px; color: white; text-transform: uppercase; letter-spacing: 0.1em;">
+                VIOLATION DETECTED</h2>
+            <p id="violation-message" style="font-size: 18px; font-weight: 700; color: #fca5a5; margin-bottom: 24px;">
+            </p>
+            <p style="font-size: 14px; color: #fef2f2; font-weight: 600;">⚠️ Maintain proper interview posture and focus
+            </p>
+        </div>
+    </div>
+    <div id="violation-counter" class="violation-counter">
+        ⚠️ Violations: <span id="violation-count">0</span>
+    </div>
+
+    <div id="main-hub" class="hidden h-screen w-full p-6 flex gap-6 overflow-hidden">
+        <aside class="w-80 glass p-10 flex flex-col shrink-0 bg-white/[0.01]">
+            <div class="mb-14 flex items-center gap-4">
+                <div
+                    class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center font-black text-2xl text-white italic shadow-lg">
+                    iH</div>
+                <div>
+                    <h2 class="text-2xl font-black tracking-tighter uppercase text-white leading-none">InternHub</h2>
+                    <p id="portal-badge" class="text-[9px] font-black text-indigo-400 tracking-widest mt-1 uppercase">
+                        Institutional Hub</p>
+                </div>
+            </div>
+            <nav id="nav-list" class="flex-1 space-y-3 overflow-y-auto"></nav>
+            <div class="mt-auto pt-8 border-t border-white/5 space-y-4">
+                <div class="flex items-center gap-4 p-4 bg-white/5 rounded-3xl">
+                    <div id="user-initial"
+                        class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center font-black text-2xl text-white">
+                        U</div>
+                    <div class="overflow-hidden">
+                        <p id="user-name" class="text-sm font-black text-white truncate"></p>
+                        <p id="user-role-label" class="text-[9px] font-black text-slate-600 uppercase"></p>
+                    </div>
+                </div>
+                <button onclick="window.location.reload()"
+                    class="w-full py-5 text-[10px] font-black uppercase text-slate-500 hover:text-white transition-all">Logout</button>
+            </div>
+        </aside>
+        <main class="flex-1 flex flex-col gap-6 overflow-hidden">
+            <header class="glass h-28 px-12 flex items-center justify-between shrink-0 bg-white/[0.01]">
+                <div>
+                    <h2 id="view-title" class="text-3xl font-black text-white">Dashboard</h2>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase mt-1 tracking-widest">Neural Link
+                        Synchronized</p>
+                </div>
+                <div class="px-6 py-3 glass bg-white/5 border-none flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 pulse"></div><span
+                        class="text-[11px] font-black uppercase text-white">STATUS: RELIABLE</span>
+                </div>
+            </header>
+            <div id="hub-content" class="flex-1 overflow-y-auto pr-2 space-y-6"></div>
+        </main>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal-container"
+        class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-10">
+        <div class="glass w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden border-none">
+            <div class="p-8 border-b border-white/5 flex items-center justify-between">
+                <h3 id="modal-header" class="text-3xl font-black text-white italic">Audit</h3><button
+                    onclick="closeModal()"
+                    class="w-10 h-10 flex items-center justify-center glass border-none text-white">✕</button>
+            </div>
+            <div id="modal-body" class="flex-1 p-10 overflow-y-auto grid grid-cols-2 gap-8 text-white"></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"
+        class="fixed bottom-12 right-12 z-[300] transform translate-y-40 opacity-0 transition-all duration-500 glass bg-indigo-600 px-8 py-4 text-white font-bold rounded-2xl">
+        Message</div>
+
+    <!-- CLOUD NOTIFICATION -->
+    <div id="cloud-mail"
+        class="fixed top-12 right-12 z-[300] transform -translate-y-40 opacity-0 transition-all duration-700 pointer-events-none">
+        <div class="glass px-8 py-6 bg-indigo-900 border border-white/20 rounded-[28px] shadow-2xl">
+            <p id="cloud-msg" class="text-white text-xs font-mono font-bold"></p>
+        </div>
+    </div>
+
+    <!-- 3. REAL FILE UPLOAD SYSTEM -->
+    <input type="file" id="resume-file-input" class="hidden" accept=".pdf,.doc,.docx"
+        onchange="processResume(this.files)">
+
+    <!-- 3. ROBUST AGENT OVERLAY (REMOVED: Features migrated to Main AI Interview Tab) -->
+    <!-- The Neural Robust Agent features (Video, Analyzer, ChatGPT) are now integrated directly into the 'AI Interview' view for a unified experience. -->
+
+
+    <!-- 🧬 FIREBASE CLOUD CORE (v10 COMPAT) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // --- 🛡️ ROBUST ERROR TRAPPING ---
+        window.onerror = function (msg, url, line, col, error) {
+            alert("System Malfunction Detected:\\n" + msg + "\\nLine: " + line);
+            // Force remove spinner if stuck
+            const c = document.getElementById('hub-content');
+            if (c && c.innerHTML.includes('loader')) {
+                c.innerHTML = "<div class='p-10 text-rose-500 font-bold'>Critical Error: System Reboot Required.</div>";
+            }
+            return false;
+        };
+
+        // --- ☁️ INSTITUTIONAL CLOUD CONFIG ---
+        // INSTRUCTIONS: Go to Firebase Console -> Project Settings -> Add Web App.
+        // Copy the config object and PASTE IT BELOW.
+        const firebaseConfig = {
+            apiKey: "PASTE_YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Cloud
+        let CLOUD_ACTIVE = false;
+        try {
+            if (firebaseConfig.apiKey !== "PASTE_YOUR_API_KEY_HERE") {
+                firebase.initializeApp(firebaseConfig);
+                CLOUD_ACTIVE = true;
+                console.log("Neural Cloud Link: ESTABLISHED");
+            }
+        } catch (e) {
+            console.error("Neural Cloud Sync Error:", e);
+        }
+
+        const db = CLOUD_ACTIVE ? firebase.database() : null;
+
+        let FILTER_DEPT = "ALL";
+        let FILTER_BATCH = "ALL";
+        let FILTER_SKILL = "";
+
+        let GLOBAL_SYNC = {
+            jobs: [
+                { co: "AMAZON", tier: "ELITE", role: "Full Stack Software Engineer", desc: "Skills: Java, Spring Boot, React, NoSQL. Package: 32 LPA.", color: "indigo" },
+                { co: "GOOGLE", tier: "CORE", role: "System Design Architect", desc: "Skills: Distributed Systems, CAP, Python. Package: 48 LPA.", color: "emerald" }
+            ],
+            drives: [
+                { title: "MICROSOFT HIGH-SCALE", desc: "1,200 Registered | Tomorrow 10:00 AM", status: "Active" }
+            ],
+            broadcasts: []
+        };
+        // --- 🧬 CORE DATA ---
+        const DB = {
+            roles: {
+                student: { id: "ST", name: "Student Excellence", tabs: ["Readiness Stats", "AI Interview", "Resume Hub", "Resume Builder", "Job Board"] },
+                faculty: { id: "FA", name: "Faculty Oversight", tabs: ["Verification Cell", "Resume Audit", "Reporting Engine"] },
+                hod: { id: "HOD", name: "Institutional Authority", tabs: ["Dept Analytics", "Drive Control", "Staff Monitoring"] },
+                admin: { id: "AD", name: "System Administrator", tabs: ["Security Log", "Global Metrics", "System Config"] },
+                coordinator: { id: "PC", name: "Placement Cell", tabs: ["Drive Management", "Skill Intelligence", "Broadcasting"] }
+            },
+            ai: {
+                state: "discovery",
+                subState: "company",
+                questionIndex: 0,
+                scoreTracker: 0,
+                sessionData: [],
+                tempSelection: { co: "", ro: "", rd: "" },
+                interviewTriggers: ["start interview", "begin interview", "start", "initialize sequence", "begin simulation", "interview me", "take interview", "start simulation"],
+                conceptCloud: [
+                    { k: ["javascript", "js", "frontend"], r: "JavaScript is the engine of the modern web. It enables interactivity on the frontend via React/Vue and can now power backends via Node.js, making 'Full Stack' development possible in one language." },
+                    { k: ["react", "virtual dom"], r: "React uses a Virtual DOM to minimize direct manipulation of the actual DOM, leading to high-performance UI updates via a clever diffing algorithm." },
+                    { k: ["node", "non-blocking"], r: "Node.js is an asynchronous event-driven JavaScript runtime designed for building scalable network applications. It uses a non-blocking I/O model." },
+                    { k: ["sql", "nosql", "difference"], r: "SQL (MySQL, Postgres) is relational and uses structured headers, best for ACID compliance. NoSQL (MongoDB, Cassandra) is non-relational and scales horizontally, best for high-volume unstructured data." },
+                    { k: ["docker", "container"], r: "Docker packages apps into isolated containers, ensuring that if it works on your machine, it works in production by bundling all dependencies together." },
+                    { k: ["rest", "api"], r: "REST is an architectural style for networked applications. It uses standard HTTP methods (GET, POST, etc.) and is stateless by design." },
+                    { k: ["system design", "load balancer"], r: "A Load Balancer acts as a traffic cop, distributing incoming requests across multiple servers to prevent any one server from being overwhelmed." },
+                    { k: ["html", "css", "basics"], r: "HTML provides the skeleton of a webpage, while CSS provides the visual styling, layout, and responsive adaptations for mobile and desktop." },
+                    { k: ["microservices", "architecture"], r: "Microservices break a monolithic application into small, independent services that communicate over APIs, allowing teams to scale and deploy features independently." },
+                    { k: ["aws", "cloud", "azure"], r: "Cloud platforms like AWS and Azure provide virtualized infrastructure (servers, storage, DBs) on-demand, removing the need for physical hardware management." }
+                ],
+                fillerWords: [], // Disabled per user request to focus on tech
+                grammarChecks: [], // Disabled per user request to focus on tech
+
+                // Structured Dataset
+                dataset: {
+                    "Amazon": {
+                        "Python Developer": {
+                            "Technical": [
+                                { q: "How would you design a <b>Real-Time Tracking System</b> for millions of concurrent orders using Python?", k: ["sharding", "kafka", "distributed", "nosql", "fastapi", "redis"], sol: "A T1 Python approach involves using FastAPI for async handling, Kafka for event streaming, and Redis for sub-millisecond tracking." },
+                                { q: "Explain how <b>Python's Global Interpreter Lock (GIL)</b> affects multi-threaded applications at scale.", k: ["gil", "thread", "concurrency", "multiprocessing", "cpu"], sol: "The GIL allows only one thread to execute at a time. To scale CPU-bound Python apps, we use 'multiprocessing' instead of 'threading'." }
+                            ],
+                            "System Design": [
+                                { q: "Design a <b>Scalable Notification Service</b> for Amazon using a Microservices architecture.", k: ["pubsub", "sqs", "lambda", "dynamodb", "fanout"], sol: "Use SQS for decoupling, Lambda for processing, and DynamoDB for persistence with a Pub/Sub fan-out pattern." }
+                            ]
+                        },
+                        "Frontend Developer": {
+                            "Technical": [
+                                { q: "How would you optimize <b>First Contentful Paint (FCP)</b> for a heavy Amazon product page?", k: ["critical", "css", "lazy", "defer", "bundle", "splitting"], sol: "Optimize FCP by inlining critical CSS, lazy loading non-critical assets, and using Route-based bundle splitting." }
+                            ]
+                        }
+                    },
+                    "Google": {
+                        "Software Engineer": {
+                            "Technical": [
+                                { q: "How does a <b>B-Tree</b> structure improve database performance compared to a standard binary search tree?", k: ["disk", "io", "branching", "factor", "height"], sol: "B-Trees minimize Disk I/O by having a high branching factor, which significantly reduces the tree height compared to BSTs." }
+                            ]
+                        }
+                    },
+                    "System Design": {
+                        "General": {
+                            "Architecture": [
+                                { q: "Analyze the <b>CAP Theorem</b> and explain which property you would sacrifice for a Global Banking System.", k: ["consistency", "availability", "partition", "cp", "strict"], sol: "In a Global Banking System, we sacrifice Availability (CP) for strict Consistency to ensure transactions are never mismatched." }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        // --- 🔐 NEURAL CLOUD RESET & AUTH ---
+        async function initNeuralCloud() {
+            const version = "3.0";
+            if (localStorage.getItem('ih_cloud_version') !== version) {
+                localStorage.clear();
+                localStorage.setItem('ih_cloud_version', version);
+            }
+
+            // Fallback Seed Data
+            const seed = {
+                "24eg107h@anurag.edu.in": { name: "Rahul Student", pass: "stu123", role: "student" },
+                "ttrupthi@anurag.edu.in": { name: "Prof. Trupthi", pass: "fac123", role: "faculty" },
+                "hod.cse@anurag.edu.in": { name: "Dr. K. Rao", pass: "hod123", role: "hod" },
+                "admin.it@anurag.edu.in": { name: "Super Admin", pass: "adm123", role: "admin" },
+                "pc.placement@anurag.edu.in": { name: "Placement Cell", pass: "pc123", role: "coordinator" }
+            };
+
+            if (CLOUD_ACTIVE) {
+                const snapshot = await db.ref('ih_cloud').once('value');
+                if (!snapshot.exists()) {
+                    await db.ref('ih_cloud').set(seed);
+                    localStorage.setItem('ih_cloud', JSON.stringify(seed));
+                } else {
+                    localStorage.setItem('ih_cloud', JSON.stringify(snapshot.val()));
+                }
+
+                // Fetch & Sync Global Data (Jobs, Drives)
+                const globalSnap = await db.ref('ih_global').once('value');
+                if (globalSnap.exists()) GLOBAL_SYNC = globalSnap.val();
+                else await db.ref('ih_global').set(GLOBAL_SYNC);
+
+                // Real-time listener for User Data
+                db.ref('ih_cloud').on('value', (snap) => {
+                    if (snap.exists()) {
+                        localStorage.setItem('ih_cloud', JSON.stringify(snap.val()));
+                        if (activeUser) navigate(document.getElementById('view-title').innerText);
+                    }
+                });
+
+                // Real-time listener for Global Data
+                db.ref('ih_global').on('value', (snap) => {
+                    if (snap.exists()) {
+                        const newData = snap.val();
+                        // Real-time Push Notification for Broadcasts
+                        if (newData.broadcasts && newData.broadcasts.length > GLOBAL_SYNC.broadcasts.length) {
+                            const latest = newData.broadcasts[newData.broadcasts.length - 1];
+                            showNeuralPop(latest);
+                        }
+                        GLOBAL_SYNC = newData;
+                        if (activeUser) navigate(document.getElementById('view-title').innerText.split(' ')[0]);
+                    }
+                });
+            } else {
+                if (!localStorage.getItem('ih_cloud')) {
+                    localStorage.setItem('ih_cloud', JSON.stringify(seed));
+                }
+            }
+        }
+        // Wrapping Init in try-catch to prevent white-screen of death on startup
+        try { initNeuralCloud(); } catch (e) { console.error("Critical Init Fail:", e); alert("Init Error: " + e.message); }
+
+        let activeUser = null, activeEmail = "", currentOTP = "";
+
+        function toggleAuth(type) {
+            const isLogin = type === 'login';
+            document.getElementById('view-login').className = isLogin ? "space-y-6" : "hidden";
+            document.getElementById('view-signup').className = !isLogin ? "space-y-6" : "hidden";
+            document.getElementById('tab-login').className = isLogin ? "flex-1 py-3 rounded-xl font-bold transition-all text-xs uppercase bg-white/10 text-white" : "flex-1 py-3 rounded-xl font-bold transition-all text-xs uppercase text-slate-500";
+            document.getElementById('tab-signup').className = !isLogin ? "flex-1 py-3 rounded-xl font-bold transition-all text-xs uppercase bg-white/10 text-white" : "flex-1 py-3 rounded-xl font-bold transition-all text-xs uppercase text-slate-500";
+        }
+
+        function predictRole(prefix) {
+            const email = document.getElementById(`${prefix}-email`).value.toLowerCase().trim();
+            const preview = document.getElementById(`${prefix}-role-preview`);
+            const label = document.getElementById(`${prefix}-role-name`);
+
+            if (!email) {
+                preview.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => preview.classList.add('hidden'), 500);
+                return;
+            }
+
+            preview.classList.remove('hidden');
+            setTimeout(() => preview.classList.remove('opacity-0', 'translate-y-2'), 10);
+
+            let roleName = "Faculty Oversight";
+            let colorClass = "text-indigo-400";
+            let bgClass = "bg-indigo-500/10";
+            let borderClass = "border-indigo-500/20";
+
+            if (/^\d/.test(email)) {
+                roleName = "Student Excellence";
+                colorClass = "text-emerald-400";
+                bgClass = "bg-emerald-500/10";
+                borderClass = "border-emerald-500/20";
+            } else if (email.startsWith("hod.")) {
+                roleName = "Institutional Authority (HOD)";
+                colorClass = "text-amber-400";
+                bgClass = "bg-amber-500/10";
+                borderClass = "border-amber-500/20";
+            } else if (email.startsWith("admin.")) {
+                roleName = "System Administrator";
+                colorClass = "text-rose-400";
+                bgClass = "bg-rose-500/10";
+                borderClass = "border-rose-500/20";
+            } else if (email.startsWith("pc.")) {
+                roleName = "Placement Intelligence (PC)";
+                colorClass = "text-cyan-400";
+                bgClass = "bg-cyan-500/10";
+                borderClass = "border-cyan-500/20";
+            }
+
+            // Update UI with Perfection
+            preview.className = `px-4 py-2 ${bgClass} ${borderClass} border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-500`;
+            label.innerText = roleName;
+            label.className = `${colorClass}`;
+            preview.querySelector('.pulse').className = `w-1.5 h-1.5 rounded-full pulse ${colorClass.replace('text', 'bg')}`;
+        }
+
+        async function performSignup() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value.toLowerCase().trim();
+            const pass = document.getElementById('reg-pass').value;
+            if (!email.endsWith("@anurag.edu.in") || pass.length < 3) { showToast("Invalid Institutional Mail"); return; }
+
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            if (cloud[email]) { showToast("Existing Link Found"); return; }
+
+            let role = "faculty";
+            if (/^\d/.test(email)) role = "student";
+            else if (email.startsWith("hod.")) role = "hod";
+            else if (email.startsWith("admin.")) role = "admin";
+            else if (email.startsWith("pc.")) role = "coordinator";
+
+            const newUser = { name, pass, role };
+            cloud[email] = newUser;
+
+            if (CLOUD_ACTIVE) {
+                await db.ref(`ih_cloud/${email.replace(/\./g, '_')}`).set(newUser);
+            }
+            localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+
+            showToast(`Neural Link Established: ${role.toUpperCase()}`);
+            toggleAuth('login');
+        }
+
+        async function performLogin() {
+            const email = document.getElementById('login-email').value.toLowerCase().trim();
+            const pass = document.getElementById('login-pass').value;
+
+            let cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+
+            if (CLOUD_ACTIVE) {
+                const snapshot = await db.ref('ih_cloud').once('value');
+                if (snapshot.exists()) cloud = snapshot.val();
+            }
+
+            const u = cloud[email] || cloud[email.replace(/\./g, '_')];
+            if (u && u.pass === pass) {
+                activeUser = DB.roles[u.role];
+                activeEmail = email;
+                enterPortal(u.name);
+            } else showToast("Access Denied: Check Credentials");
+        }
+
+        // --- FORGOT PASSWORD ---
+        function showForgot() { document.getElementById('view-login').className = "hidden"; document.getElementById('view-forgot').className = "space-y-6"; }
+        function sendOTP() {
+            currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('cloud-msg').innerText = `[RECOVERY] Synchronizing OTP: ${currentOTP}`;
+            document.getElementById('cloud-mail').classList.remove('-translate-y-40', 'opacity-0');
+            setTimeout(() => { document.getElementById('view-forgot').className = "hidden"; document.getElementById('view-otp').className = "space-y-6"; }, 500);
+        }
+        function verifyOTP() {
+            if (document.getElementById('otp-input').value === currentOTP) { document.getElementById('view-otp').className = "hidden"; document.getElementById('view-reset').className = "space-y-6"; }
+            else showToast("Sync Error");
+        }
+        async function finalizeReset() {
+            const p = document.getElementById('reset-pass').value;
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            cloud[activeEmail].pass = p;
+            await ih_push(`ih_cloud/${activeEmail.replace(/\./g, '_')}/pass`, p);
+            localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+            showToast("Synapse Reset Complete."); setTimeout(() => window.location.reload(), 1500);
+        }
+
+        async function ih_push(path, data) {
+            if (CLOUD_ACTIVE) {
+                try {
+                    await db.ref(path).set(data);
+                } catch (e) { console.error("Cloud Push Failure:", e); }
+            }
+        }
+
+        async function deleteDrive(index) {
+            GLOBAL_SYNC.drives.splice(index, 1);
+            await ih_push('ih_global/drives', GLOBAL_SYNC.drives);
+            navigate("Drive Control");
+            showToast("Drive Deactivated Globally.");
+        }
+
+        async function sendBroadcast() {
+            const msg = prompt("Enter Global Broadcast Message:");
+            if (!msg) return;
+            const b = { sender: activeUser.name, text: msg, time: new Date().toLocaleTimeString() };
+            GLOBAL_SYNC.broadcasts.push(b);
+            await ih_push('ih_global/broadcasts', GLOBAL_SYNC.broadcasts);
+            showToast("Neural Broadcast Distributed Globally.");
+        }
+
+        async function addDriveManually() {
+            const title = prompt("Drive Title (e.g., TESLA CORE):");
+            if (!title) return;
+            const newDrive = { title: title.toUpperCase(), desc: "New Institutional Opportunity | Synchronizing...", status: "Active" };
+            GLOBAL_SYNC.drives.push(newDrive);
+            await ih_push('ih_global/drives', GLOBAL_SYNC.drives);
+            navigate("Drive Control");
+            showToast("Global Announcement Synchronized.");
+        }
+
+        function showNeuralPop(b) {
+            const container = document.getElementById('modal-container');
+            const body = document.getElementById('modal-body');
+            const header = document.getElementById('modal-header');
+
+            header.innerHTML = `<span class='bg-rose-500 px-3 py-1 rounded-full text-[9px] animate-pulse mr-2'>URGENT</span> INSTITUTIONAL BROADCAST`;
+            body.innerHTML = `
+                <div class='col-span-2 space-y-8 p-10 text-center'>
+                    <div class='w-24 h-24 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto text-4xl animate-bounce'>📢</div>
+                    <div>
+                        <h4 class='text-2xl font-black italic uppercase mb-2'>${b.sender}</h4>
+                        <p class='text-lg font-medium text-slate-300'>"${b.text}"</p>
+                    </div>
+                    <div class='pt-6 border-t border-white/5'>
+                        <p class='text-[10px] text-slate-500 uppercase font-black tracking-widest'>Sequence Time: ${b.time}</p>
+                    </div>
+                </div>
+            `;
+            container.classList.remove('hidden');
+        }
+
+        // --- 📱 RESPONSIVE DEVICE DETECTION ---
+        function detectDevice() {
+            const width = window.innerWidth;
+            const isMobile = width <= 768;
+            const isTablet = width > 768 && width <= 1024;
+            const isDesktop = width > 1024;
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+            let deviceType = 'Desktop';
+            let deviceIcon = '💻';
+
+            if (isMobile) {
+                deviceType = 'Mobile';
+                deviceIcon = '📱';
+            } else if (isTablet) {
+                deviceType = 'Tablet';
+                deviceIcon = '📱';
+            }
+
+            // Show device indicator
+            const indicator = document.getElementById('device-indicator');
+            if (indicator) {
+                indicator.innerHTML = `${deviceIcon} ${deviceType} Mode Active`;
+                indicator.style.animation = 'fadeInOut 3s ease-in-out';
+            }
+
+            // Store device info
+            window.DEVICE_INFO = {
+                type: deviceType.toLowerCase(),
+                isMobile,
+                isTablet,
+                isDesktop,
+                isTouchDevice,
+                width
+            };
+
+            // Apply device-specific optimizations
+            applyDeviceOptimizations();
+
+            console.log(`🎯 Device Detected: ${deviceType} (${width}px) | Touch: ${isTouchDevice}`);
+        }
+
+        function applyDeviceOptimizations() {
+            const { isMobile, isTablet, isTouchDevice } = window.DEVICE_INFO;
+
+            // Mobile-specific optimizations
+            if (isMobile) {
+                // Disable hover effects on mobile
+                document.body.classList.add('mobile-device');
+
+                // Enable touch-friendly scrolling
+                document.body.style.webkitOverflowScrolling = 'touch';
+
+                // Adjust viewport for mobile browsers
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                }
+            }
+
+            // Touch device optimizations
+            if (isTouchDevice) {
+                // Add touch-friendly class
+                document.body.classList.add('touch-device');
+
+                // Increase button sizes slightly
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .touch-device button {
+                        min-height: 44px;
+                        min-width: 44px;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('#main-hub aside');
+            const overlay = document.querySelector('.mobile-overlay');
+
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        // Detect device on load and resize
+        window.addEventListener('load', detectDevice);
+        window.addEventListener('resize', detectDevice);
+
+        // --- 🏗️ PORTAL HUB ---
+        function enterPortal(name) {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('main-hub').classList.remove('hidden');
+            document.getElementById('main-hub').style.display = 'flex';
+            document.getElementById('user-name').innerText = name;
+            document.getElementById('user-initial').innerText = name[0];
+            document.getElementById('user-role-label').innerText = activeUser.name;
+            renderNav();
+            navigate(activeUser.tabs[0]);
+
+            // Detect device after entering portal
+            setTimeout(detectDevice, 100);
+        }
+
+        function renderNav() {
+            const n = document.getElementById('nav-list'); n.innerHTML = "";
+            activeUser.tabs.forEach(t => {
+                const b = document.createElement('button');
+                b.className = "nav-item w-full px-6 py-4 rounded-3xl text-left font-bold text-slate-500 hover:text-white mb-2 transition-all";
+                b.id = `nav-${t.replace(/\s+/g, '-').toLowerCase()}`;
+                b.onclick = () => navigate(t);
+                b.innerText = t;
+                n.appendChild(b);
+            });
+        }
+
+        function navigate(tab) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('sidebar-active', 'text-white'));
+            const activeNav = document.getElementById(`nav-${tab.replace(/\s+/g, '-').toLowerCase()}`);
+            if (activeNav) activeNav.classList.add('sidebar-active', 'text-white');
+            document.getElementById('view-title').innerHTML = `${tab} ${CLOUD_ACTIVE ? "<span class='ml-4 text-[10px] bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-black tracking-widest animate-pulse'>CLOUD SYNC ACTIVE</span>" : "<span class='ml-4 text-[10px] bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full font-black tracking-widest'>LOCAL NEURAL CORE ACTIVE</span>"}`;
+            const gate = document.getElementById('hub-content');
+            gate.innerHTML = `<div class='p-20 flex justify-center'><span class='loader'></span></div>`;
+            setTimeout(() => gate.innerHTML = getTabHTML(tab), 400);
+        }
+
+        function getTabHTML(t) {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud')) || {};
+            const h = (c) => `<div class='tab-active space-y-6 animate-in fade-in slide-in-from-bottom-5'>${c}</div>`;
+            const students = Object.keys(cloud)
+                .filter(k => k && cloud[k] && cloud[k].role === 'student')
+                .map(k => {
+                    const s = cloud[k];
+                    // HEURISTIC: Assign mock Dept/Batch if missing for institutional realism
+                    const dept = s.dept || ["CSE", "ECE", "EEE", "MECH"][Math.floor(Math.random() * 4)];
+                    const batch = s.batch || ["2024", "2025", "2026"][Math.floor(Math.random() * 3)];
+                    return { email: k, dept, batch, ...s };
+                })
+                .filter(s => {
+                    const matchesDept = (FILTER_DEPT === "ALL" || s.dept === FILTER_DEPT);
+                    const matchesBatch = (FILTER_BATCH === "ALL" || s.batch === FILTER_BATCH);
+                    const matchesSkill = (!FILTER_SKILL || (s.resumeData && Array.isArray(s.resumeData.skills) && s.resumeData.skills.some(sk => sk && sk.toLowerCase().includes(FILTER_SKILL.toLowerCase()))));
+                    return matchesDept && matchesBatch && matchesSkill;
+                });
+
+            if (t === "Readiness Stats") return h(`<div class='glass p-12 bg-indigo-600/10'><h4 class='text-8xl font-black'>92<span class='text-4xl text-slate-500'>.4%</span></h4><p class='text-sm text-indigo-400 font-bold mt-4 uppercase tracking-widest'>Neural Placement Index</p></div>`);
+
+            if (t === "AI Interview") {
+                // Determine layout based on state
+                let content = "";
+                // Always show Active Interview (Auto-Start)
+                content = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[80vh]">
+                            <!-- Left: Video & Stats -->
+                            <div class="lg:col-span-1 space-y-6 flex flex-col">
+                                <!-- User Cam -->
+                                <div class="glass p-1 relative overflow-hidden rounded-3xl bg-black aspect-video flex-shrink-0 group">
+                                    <video id="main-user-cam" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1] rounded-2xl"></video>
+                                    <div class="absolute top-4 left-4 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-sm uppercase tracking-widest animate-pulse flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-white rounded-full"></span> Live Feed
+                                    </div>
+                                    <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <button onclick="toggleVideo()" id="main-video-btn" class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 text-white border border-white/10">
+                                            <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><path d="M14 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/></svg>
+                                        </button>
+                                        <button onclick="toggleVoice()" id="main-voice-btn" class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 text-white border border-white/10">
+                                            <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Neural Viz -->
+                                <div class="glass p-6 flex-1 flex flex-col justify-center items-center relative overflow-hidden">
+                                    <div id="main-neural-viz" class="flex items-center gap-1 h-12 mb-4 hidden">
+                                        <div class="w-1 bg-indigo-500 rounded-full h-4 wave-bar transition-all duration-75"></div>
+                                        <div class="w-1 bg-indigo-500 rounded-full h-8 wave-bar transition-all duration-75"></div>
+                                        <div class="w-1 bg-indigo-500 rounded-full h-6 wave-bar transition-all duration-75"></div>
+                                        <div class="w-1 bg-indigo-500 rounded-full h-10 wave-bar transition-all duration-75"></div>
+                                        <div class="w-1 bg-indigo-500 rounded-full h-5 wave-bar transition-all duration-75"></div>
+                                    </div>
+                                    <div class="text-center space-y-2">
+                                        <h3 class="text-xl font-black italic uppercase text-indigo-400">Analysis Matrix</h3>
+                                        <div class="grid grid-cols-2 gap-4 text-center w-full mt-4">
+                                            <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                                                <div id="main-conf" class="text-2xl font-black text-white">0%</div>
+                                                <div class="text-[8px] uppercase tracking-widest text-slate-500">Confidence</div>
+                                            </div>
+                                            <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                                                <div id="main-tech" class="text-2xl font-black text-indigo-400">0%</div>
+                                                <div class="text-[8px] uppercase tracking-widest text-slate-500">Technical</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Chat Interface -->
+                            <div class="lg:col-span-2 glass flex flex-col relative overflow-hidden h-[80vh]">
+                                <div id="chat" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll pb-32">
+                                    <div class='flex animate-in slide-in-from-left-2 fade-in'><div class='glass p-7 rounded-3xl rounded-tl-none max-w-2xl text-slate-300 border border-white/10 leading-relaxed shadow-2xl relative overflow-hidden'><div class='absolute inset-0 bg-indigo-500/5 pointer-events-none'></div><b>Discovery Protocol Active.</b> <br><br>Which company specific neural-path are you targeting? (e.g., <b>Amazon, Google</b>)</div></div>
+                                </div>
+                                <div class="p-6 bg-[#020617]/50 border-t border-white/10 backdrop-blur-xl absolute bottom-0 left-0 right-0 z-10">
+                                    <input id="main-input" type="text" onkeydown="handleTalk(event)" placeholder="Type your answer or use voice command..." class="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm font-medium outline-none focus:border-indigo-500 transition-all text-white placeholder-slate-600 shadow-inner">
+                                    <div class="absolute right-10 top-1/2 transform -translate-y-1/2 flex items-center gap-3">
+                                        <span id="gpt-link-status" class="text-[8px] font-black uppercase tracking-widest text-emerald-500 cursor-default">NEURAL ENGINE ACTIVE</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                return h(`
+                    <div class="animate-in fade-in zoom-in-95 duration-500">
+                        ${content}
+                    </div>
+                `);
+            }
+
+            if (t === "Resume Hub") {
+                const u = cloud[activeEmail];
+                const hasRes = u && u.resume;
+                return h(`
+                    <div class='space-y-6'>
+                        <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                            <div onclick='simUp()' class='glass p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 border-2 border-dashed border-white/10 transition-all'>
+                                <div class='text-5xl mb-4'>📤</div>
+                                <span id='res-btn-txt' class='font-black uppercase tracking-widest text-indigo-400'>${hasRes ? "Update Profile CV" : "Upload Institutional CV"}</span>
+                                <p class='text-[10px] text-slate-500 mt-2 uppercase'>Supports .PDF, .DOCX</p>
+                            </div>
+                            <div id='res-score' class='glass p-10 flex flex-col justify-center ${hasRes ? "" : "opacity-20"}'>
+                                ${hasRes ? `
+                                    <div class='flex items-center justify-between mb-8'>
+                                        <div><div class='text-6xl font-black gradient-text'>${u.resume.score}</div><p class='text-[10px] text-slate-500 font-bold uppercase tracking-widest'>Optimization Index</p></div>
+                                        <div class='text-right'><span class='px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black tracking-widest'>VERIFIED</span></div>
+                                    </div>
+                                    <div class='grid grid-cols-3 gap-4'>
+                                        <div class='text-center'><p class='text-xl font-bold'>${(u.resume.metrics && u.resume.metrics.tech) || 10}%</p><p class='text-[8px] text-indigo-400 uppercase font-black'>Tech</p></div>
+                                        <div class='text-center'><p class='text-xl font-bold'>${(u.resume.metrics && u.resume.metrics.impact) || 10}%</p><p class='text-[8px] text-emerald-400 uppercase font-black'>Impact</p></div>
+                                        <div class='text-center'><p class='text-xl font-bold'>${(u.resume.metrics && u.resume.metrics.structure) || 10}%</p><p class='text-[8px] text-amber-400 uppercase font-black'>Structure</p></div>
+                                    </div>
+                                ` : "<div class='text-center py-10'><p class='text-xl font-black opacity-20'>AWAITING NEURAL AUDIT</p></div>"}
+                            </div>
+                        </div>
+                        
+                        ${hasRes ? `
+                            <div class='grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-2'>
+                                <div class='glass p-8 border-emerald-500/20 bg-emerald-500/5'>
+                                    <div class='flex items-center gap-3 mb-6'>
+                                        <div class='w-2 h-2 rounded-full bg-emerald-500 pulse'></div>
+                                        <h5 class='text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500'>Neural Success Factors</h5>
+                                    </div>
+                                    <ul class='space-y-3'>
+                                        ${(u.resume.success || []).map(s => `
+                                            <li class='flex items-start gap-4 p-4 bg-black/20 rounded-2xl border border-white/5'>
+                                                <span class='text-emerald-400 font-black mt-0.5'>✓</span>
+                                                <p class='text-xs text-slate-300 leading-relaxed'>${s}</p>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                <div class='glass p-8 border-rose-500/20 bg-rose-500/5'>
+                                    <div class='flex items-center gap-3 mb-6'>
+                                        <div class='w-2 h-2 rounded-full bg-rose-500 pulse'></div>
+                                        <h5 class='text-[10px] font-black uppercase tracking-[0.2em] text-rose-500'>Optimization Gaps</h5>
+                                    </div>
+                                    <ul class='space-y-3'>
+                                        ${(u.resume.gaps || []).map(g => `
+                                            <li class='flex items-start gap-4 p-4 bg-black/20 rounded-2xl border border-white/5'>
+                                                <span class='text-rose-400 font-black mt-0.5'>⚠</span>
+                                                <p class='text-xs text-slate-300 leading-relaxed'>${g}</p>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class='glass p-6 flex justify-between items-center'>
+                                <p class='text-[10px] text-slate-500 uppercase font-black'>Audit Identity: ${u.resume.fileName}</p>
+                                <p class='text-[10px] text-indigo-400 font-black'>Analyzed on: ${u.resume.date}</p>
+                            </div>
+                        ` : ""}
+                    </div>
+                `);
+            }
+
+            if (t === "Resume Builder") {
+                const u = cloud[activeEmail];
+                const res = u.resumeData || {
+                    name: u.name,
+                    email: activeEmail,
+                    phone: "+91 98XXX XXXXX",
+                    summary: "Passionate Engineer with a focus on High-Scale Systems and Neural Architectures.",
+                    xp: [{ role: "Technical Intern", co: "Global Tech Solutions", date: "2024 - Present", desc: "Optimizing cloud latency by 40% using Python-based microservices." }],
+                    edu: [{ deg: "B.Tech CSE", inst: "Anurag University", date: "2021 - 2025", gpa: "9.2" }],
+                    skills: ["Java", "Python", "System Design", "Firebase", "React"],
+                    projects: [{ title: "InternHub Elite", desc: "A real-time cloud-synchronized recruitment platform using Neural Intelligence." }]
+                };
+
+                return h(`
+                    <div class='grid grid-cols-1 lg:grid-cols-5 gap-8'>
+                        <!-- ARCHITECT FORM -->
+                        <div class='lg:col-span-2 space-y-6 max-h-[70vh] overflow-y-auto pr-4 custom-scroll'>
+                            <div class='glass p-6'>
+                                <h4 class='text-[10px] font-black text-indigo-400 uppercase mb-6 tracking-widest'>Identity Module</h4>
+                                <div class='space-y-4'>
+                                    <input oninput='updateResume("name", this.value)' value='${res.name}' placeholder='Full Name' class='w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-500'>
+                                    <input oninput='updateResume("phone", this.value)' value='${res.phone}' placeholder='Phone' class='w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-500'>
+                                    <textarea oninput='updateResume("summary", this.value)' placeholder='Professional Summary' class='w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-500 h-24'>${res.summary}</textarea>
+                                </div>
+                            </div>
+
+                            <div class='glass p-6'>
+                                <div class='flex justify-between items-center mb-6'>
+                                    <h4 class='text-[10px] font-black text-emerald-400 uppercase tracking-widest'>Experience Sequence</h4>
+                                    <button onclick='addResumeItem("xp")' class='text-[10px] font-black text-white bg-emerald-600 px-3 py-1 rounded-lg'>+ ADD</button>
+                                </div>
+                                <div id='xp-container' class='space-y-4'>
+                                    ${res.xp.map((x, i) => `
+                                        <div class='p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2'>
+                                            <input oninput='updateResumeItem("xp", ${i}, "role", this.value)' value='${x.role}' placeholder='Role' class='w-full bg-transparent text-[10px] font-bold outline-none'>
+                                            <input oninput='updateResumeItem("xp", ${i}, "co", this.value)' value='${x.co}' placeholder='Company' class='w-full bg-transparent text-[10px] opacity-50 outline-none'>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class='glass p-6'>
+                                <div class='flex justify-between items-center mb-6'>
+                                    <h4 class='text-[10px] font-black text-amber-400 uppercase tracking-widest'>Skill Matrix</h4>
+                                    <button onclick='addResumeItem("skills")' class='text-[10px] font-black text-white bg-amber-600 px-3 py-1 rounded-lg'>+ ADD</button>
+                                </div>
+                                <div class='flex flex-wrap gap-2'>
+                                    ${res.skills.map((s, i) => `
+                                        <input oninput='updateResumeItem("skills", ${i}, null, this.value)' value='${s}' class='w-24 bg-white/10 px-3 py-1 rounded-full text-[9px] font-bold outline-none text-center'>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <button onclick='finalizeResumeSave()' class='w-full bg-indigo-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/20'>Save to Institutional Cloud</button>
+                        </div>
+
+                        <!-- NEURAL PREVIEW -->
+                        <div class='lg:col-span-3'>
+                            <div id='resume-paper' class='bg-white text-slate-900 p-12 min-h-[800px] shadow-2xl rounded-sm transform transition-all overflow-hidden'>
+                                <div class='border-b-4 border-indigo-600 pb-6 mb-8'>
+                                    <h1 class='text-4xl font-black tracking-tighter uppercase mb-2'>${res.name}</h1>
+                                    <div class='flex gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest'>
+                                        <span>${activeEmail}</span> • <span>${res.phone}</span> • <span>HYDERABAD, IN</span>
+                                    </div>
+                                </div>
+                                
+                                <div class='grid grid-cols-1 gap-8'>
+                                    <section>
+                                        <h2 class='text-[11px] font-black border-b-2 border-slate-200 pb-1 mb-3 uppercase tracking-[0.2em] text-indigo-600'>Professional Summary</h2>
+                                        <p class='text-xs leading-relaxed text-slate-700'>${res.summary}</p>
+                                    </section>
+
+                                    <section>
+                                        <h2 class='text-[11px] font-black border-b-2 border-slate-200 pb-1 mb-3 uppercase tracking-[0.2em] text-indigo-600'>Experience Highlights</h2>
+                                        <div class='space-y-4'>
+                                            ${res.xp.map(x => `
+                                                <div>
+                                                    <div class='flex justify-between items-start'>
+                                                        <h3 class='text-xs font-black'>${x.role} <span class='text-slate-400 font-medium lowercase'>at</span> ${x.co}</h3>
+                                                        <span class='text-[9px] font-bold text-slate-400'>${x.date}</span>
+                                                    </div>
+                                                    <p class='text-[10px] text-slate-600 mt-1'>${x.desc}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </section>
+
+                                    <div class='grid grid-cols-2 gap-8'>
+                                        <section>
+                                            <h2 class='text-[11px] font-black border-b-2 border-slate-200 pb-1 mb-3 uppercase tracking-[0.2em] text-indigo-600'>Technical Core</h2>
+                                            <div class='flex flex-wrap gap-2'>
+                                                ${res.skills.map(s => `<span class='bg-slate-100 px-2 py-0.5 rounded text-[9px] font-bold'>${s}</span>`).join('')}
+                                            </div>
+                                        </section>
+                                        <section>
+                                            <h2 class='text-[11px] font-black border-b-2 border-slate-200 pb-1 mb-3 uppercase tracking-[0.2em] text-indigo-600'>Academic Tenure</h2>
+                                            ${res.edu.map(e => `
+                                                <div>
+                                                    <h3 class='text-xs font-black'>${e.deg}</h3>
+                                                    <p class='text-[9px] text-slate-500'>${e.inst} | GPA: ${e.gpa}</p>
+                                                </div>
+                                            `).join('')}
+                                        </section>
+                                    </div>
+                                </div>
+
+                                <div class='mt-12 pt-6 border-t border-slate-100 flex justify-between items-center opacity-50'>
+                                    <p class='text-[8px] font-bold uppercase'>System ID: ${u.role.toUpperCase()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}</p>
+                                    <p class='text-[8px] font-bold uppercase'>InternHub Elite Verified</p>
+                                </div>
+                            </div>
+                            <div class='mt-6 flex gap-4'>
+                                <button onclick='window.print()' class='flex-1 bg-white/10 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-white/5'>Download PDF Export</button>
+                                <button onclick='navigate("Resume Hub")' class='flex-1 glass py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest text-indigo-400'>Audit This Version</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            if (t === "Verification Cell" || t === "Resume Audit" || t === "Skill Intelligence") {
+                let rows = students.map(s => `
+                    <tr class='border-b border-white/5 hover:bg-white/5 transition-all'>
+                        <td class='py-6 px-4 font-bold'>${s.name} <br> <span class='text-[10px] text-slate-500 font-medium'>${s.email}</span></td>
+                        <td class='py-6 px-4'>
+                            <span class='text-[10px] font-black bg-white/5 px-3 py-1 rounded-full uppercase'>${s.dept} / ${s.batch}</span>
+                        </td>
+                        <td class='py-6 px-4'>
+                            <div class='flex flex-col'>
+                                <span class='text-lg font-black'>${s.resume ? s.resume.score : "--"}</span>
+                                <span class='text-[8px] uppercase font-bold opacity-40'>Institutional Rank</span>
+                            </div>
+                        </td>
+                        <td class='py-6 px-4 text-right whitespace-nowrap'>
+                            <div class='flex items-center justify-end gap-4'>
+                                ${s.resume && s.resume.manualVerified ? `
+                                    <div class='flex items-center gap-1 text-emerald-400'>
+                                        <div class='w-2 h-2 rounded-full bg-emerald-500 animate-pulse'></div>
+                                        <span class='text-[8px] font-black uppercase tracking-tighter'>Faculty Verified</span>
+                                    </div>
+                                ` : ""}
+                                <button onclick="showStudentModal('${s.email}')" class='bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all'>View Synapse</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                return h(`
+                    <div class='glass p-8'>
+                        <div class='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10'>
+                            <div>
+                                <h3 class='text-2xl font-black italic uppercase'>Institutional Talent Matrix</h3>
+                                <p class='text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1'>Filtering: ${FILTER_DEPT} Dept | ${FILTER_BATCH} Batch ${FILTER_SKILL ? '| Skill: ' + FILTER_SKILL : ''}</p>
+                            </div>
+                            <div class='flex flex-wrap gap-4'>
+                                <input oninput="setFilter('skill', this.value)" placeholder="Search Skills..." class='w-32 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase outline-none focus:border-indigo-500 transition-all'>
+                                <select onchange="setFilter('dept', this.value)" class='bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase outline-none focus:border-indigo-500 transition-all'>
+                                    <option value="ALL" ${FILTER_DEPT === 'ALL' ? 'selected' : ''}>All Departments</option>
+                                    <option value="CSE" ${FILTER_DEPT === 'CSE' ? 'selected' : ''}>CSE</option>
+                                    <option value="ECE" ${FILTER_DEPT === 'ECE' ? 'selected' : ''}>ECE</option>
+                                    <option value="EEE" ${FILTER_DEPT === 'EEE' ? 'selected' : ''}>EEE</option>
+                                    <option value="MECH" ${FILTER_DEPT === 'MECH' ? 'selected' : ''}>MECH</option>
+                                </select>
+                                <select onchange="setFilter('batch', this.value)" class='bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase outline-none focus:border-indigo-500 transition-all'>
+                                    <option value="ALL" ${FILTER_BATCH === 'ALL' ? 'selected' : ''}>All Batches</option>
+                                    <option value="2024" ${FILTER_BATCH === '2024' ? 'selected' : ''}>2024</option>
+                                    <option value="2025" ${FILTER_BATCH === '2025' ? 'selected' : ''}>2025</option>
+                                    <option value="2026" ${FILTER_BATCH === '2026' ? 'selected' : ''}>2026</option>
+                                </select>
+                                <button onclick='exportStudentData()' class='bg-emerald-600 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20'>Institutional Export</button>
+                            </div>
+                        </div>
+                        <table class='w-full text-left'>
+                            <thead>
+                                <tr class='border-b border-white/10 text-[10px] uppercase tracking-widest text-slate-500'>
+                                    <th class='pb-4 px-4'>Student Identity</th>
+                                    <th class='pb-4 px-4'>Dept/Batch</th>
+                                    <th class='pb-4 px-4'>AI Score</th>
+                                    <th class='pb-4 px-4 text-right'>Status & Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `);
+            }
+
+            if (t === "Job Board") return h(`
+                <div class='glass p-8 space-y-6'>
+                    <div class='flex justify-between items-center mb-6'>
+                        <h3 class='text-2xl font-black italic uppercase'>Live Institutional Vacancies</h3>
+                        <span class='px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-xl text-[10px] font-black'>${GLOBAL_SYNC.jobs.length} OPENING DETECTED</span>
+                    </div>
+                    <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        ${(GLOBAL_SYNC.jobs || []).map(j => `
+                            <div class='bg-white/5 p-8 rounded-3xl border border-white/10'>
+                                <div class='flex justify-between mb-4'>
+                                    <span class='text-xs font-black text-${j.color}-400'>${j.co}</span>
+                                    <span class='text-[10px] bg-rose-500/20 text-rose-400 px-3 py-1 rounded-full font-black'>${j.tier}</span>
+                                </div>
+                                <h4 class='text-lg font-bold mb-2'>${j.role}</h4>
+                                <p class='text-xs text-slate-400 mb-6'>${j.desc}</p>
+                                <button onclick='navigate("AI Interview")' class='w-full bg-${j.color || "indigo"}-600 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest'>Start Specialized Test</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class='p-6 bg-amber-500/5 border border-amber-500/20 rounded-2xl'>
+                        <p class='text-[10px] text-amber-500 font-bold uppercase mb-1'>Neural Recommendation:</p>
+                        <p class='text-xs text-slate-300'>Your current <b>Readiness Index (92.4%)</b> makes you a High-Density fit for the top roles. Complete the <b>'Specialized Test'</b> to unlock institutional clearance.</p>
+                    </div>
+                </div>
+            `);
+
+            if (t === "Reporting Engine" || t === "Global Metrics") {
+                let skillDensity = [];
+                try { skillDensity = calculateSkillDensity(); } catch (e) { console.error("Skill Density Calc Error", e); }
+
+                return h(`
+                    <div class='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                        <div class='glass p-8 bg-indigo-500/5'><h4 class='text-4xl font-black text-indigo-400'>${students.length}</h4><p class='text-[10px] font-black uppercase tracking-widest mt-2'>Total Talent Links</p></div>
+                        <div class='glass p-8 bg-emerald-500/5'><h4 class='text-4xl font-black text-emerald-400'>${students.filter(s => s.resume).length}</h4><p class='text-[10px] font-black uppercase tracking-widest mt-2'>Resumes Optimized</p></div>
+                        <div class='glass p-8 bg-rose-500/5'><h4 class='text-4xl font-black text-rose-400'>18.2</h4><p class='text-[10px] font-black uppercase tracking-widest mt-2'>Avg Neural Package (LPA)</p></div>
+                    </div>
+                    <div class='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                        <div class='glass p-10'>
+                            <h3 class='text-xl font-black italic uppercase mb-6 text-white'>Neural Placement Trends (2025)</h3>
+                            <div class='h-60 w-full bg-white/5 rounded-3xl flex items-end justify-between p-8 gap-4'>
+                                <div class='w-full bg-indigo-500/20 h-[40%] rounded-t-lg relative group'><div class='absolute -top-6 left-0 right-0 text-center text-[10px] opacity-0 group-hover:opacity-100 transition-all font-black uppercase'>JAN</div></div>
+                                <div class='w-full bg-indigo-500/40 h-[60%] rounded-t-lg relative group'><div class='absolute -top-6 left-0 right-0 text-center text-[10px] opacity-0 group-hover:opacity-100 transition-all font-black uppercase'>FEB</div></div>
+                                <div class='w-full bg-emerald-500 h-[90%] rounded-t-lg relative group'><div class='absolute -top-6 left-0 right-0 text-center text-[10px] opacity-0 group-hover:opacity-100 transition-all font-black uppercase'>MAR (PEAK)</div></div>
+                            </div>
+                        </div>
+                        <div class='glass p-10'>
+                            <h3 class='text-xl font-black italic uppercase mb-6 text-white'>Top Skill Density in Class</h3>
+                            <div class='space-y-6'>
+                                ${skillDensity.length === 0 ? "<p class='text-slate-500 italic text-[10px]'>Awaiting skill mapping data...</p>" :
+                        skillDensity.map(s => `
+                                    <div class='space-y-2'>
+                                        <div class='flex justify-between text-[10px] font-black uppercase tracking-widest'>
+                                            <span>${s.name}</span>
+                                            <span class='text-indigo-400'>${s.percent}%</span>
+                                        </div>
+                                        <div class='h-2 w-full bg-white/5 rounded-full overflow-hidden'>
+                                            <div class='h-full gradient-bg' style='width: ${s.percent}%'></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            if (t === "Drive Control") return h(`
+                <div class='glass p-8'>
+                    <div class='flex justify-between items-center mb-10'>
+                        <h3 class='text-2xl font-black italic uppercase'>Active Neural Drives</h3>
+                        <button onclick='addDriveManually()' class='bg-indigo-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest'>Announce New Drive</button>
+                    </div>
+                    <div class='space-y-4'>
+                        ${(GLOBAL_SYNC.drives || []).map((d, i) => `
+                            <div class='flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/10'>
+                                <div class='flex items-center gap-6'>
+                                    <div class='w-3 h-3 rounded-full bg-emerald-500 pulse'></div>
+                                    <div><h4 class='font-bold'>${d.title}</h4><p class='text-xs text-slate-500'>${d.desc}</p></div>
+                                </div>
+                                <div class='flex gap-2'>
+                                    <button class='px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase'>Edit</button>
+                                    <button onclick='deleteDrive(${i})' class='px-4 py-2 bg-rose-500/20 text-rose-400 rounded-xl text-[10px] font-black uppercase'>Deactivate</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `);
+
+            if (t === "Broadcasting") return h(`
+                <div class='glass p-8 space-y-8'>
+                    <div class='flex justify-between items-center mb-10'>
+                        <h3 class='text-2xl font-black italic uppercase'>Broadcast Center</h3>
+                        <button onclick='sendBroadcast()' class='bg-rose-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/20'>Initiate Global Signal</button>
+                    </div>
+                    <div class='space-y-4'>
+                        ${(GLOBAL_SYNC.broadcasts || []).map(b => `
+                            <div class='p-6 bg-white/5 rounded-3xl border border-white/10'>
+                                <div class='flex justify-between mb-2'>
+                                    <span class='text-[10px] font-black uppercase text-indigo-400'>${b.sender}</span>
+                                    <span class='text-[10px] text-slate-500'>${b.time}</span>
+                                </div>
+                                <p class='text-xs text-slate-300'>${b.text}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `);
+
+            if (t === "Staff Monitoring") {
+                const staff = getStaffActivity();
+                return h(`
+                    <div class='glass p-8'>
+                        <h3 class='text-2xl font-black italic uppercase mb-10'>Institutional Productivity Log</h3>
+                        <div class='grid grid-cols-1 md:grid-cols-2 gap-6 mb-10'>
+                            <div class='bg-white/5 p-6 rounded-3xl border border-white/10'>
+                                <h4 class='text-[10px] font-black text-indigo-400 uppercase mb-4'>Dean's Oversight</h4>
+                                <p class='text-xs text-slate-400'>Total endorsements in current session: <b>${staff.reduce((a, s) => a + s.activity, 0)}</b></p>
+                            </div>
+                        </div>
+                        <table class='w-full text-left'>
+                            <thead>
+                                <tr class='border-b border-white/10 text-[10px] uppercase tracking-widest text-slate-500'>
+                                    <th class='pb-4 px-4'>Staff Identity</th>
+                                    <th class='pb-4 px-4'>Tier</th>
+                                    <th class='pb-4 px-4 text-right'>Verification Log</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${staff.map(s => `
+                                    <tr class='border-b border-white/5'>
+                                        <td class='py-4 px-4 font-bold'>${s.name}</td>
+                                        <td class='py-4 px-4'><span class='text-[9px] bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full font-black uppercase'>${s.role}</span></td>
+                                        <td class='py-4 px-4 text-right font-black text-emerald-400'>${s.activity} AUDITS</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+            `);
+            }
+
+            if (t === "Dept Analytics") {
+                const ana = calculateLiveDeptAnalytics();
+                const forecast = getPlacementForecast();
+                return h(`
+                    <div class='grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-2'>
+                        <div class='glass p-10 bg-indigo-500/5 relative overflow-hidden'>
+                            <div class='absolute top-0 right-0 p-8 opacity-10 font-black text-8xl'>${ana.avg}%</div>
+                            <h3 class='text-2xl font-black mb-10 italic uppercase'>${FILTER_DEPT === 'ALL' ? 'Institutional' : FILTER_DEPT} Dept Readiness</h3>
+                            <div class='h-4 w-full bg-white/5 rounded-full overflow-hidden'>
+                                <div class='h-full gradient-bg transition-all duration-1000' style='width: ${ana.avg}%'></div>
+                            </div>
+                            <div class='flex justify-between mt-6'>
+                                <p class='font-black text-4xl'>${ana.avg}<span class='text-lg opacity-40 ml-1'>AGGR</span></p>
+                                <p class='text-[10px] font-black uppercase text-slate-500 text-right mt-4'>Based on ${ana.count} Registered Talent Nodes</p>
+                            </div>
+                        </div>
+
+                        <div class='glass p-10 bg-emerald-500/5'>
+                            <h3 class='text-2xl font-black mb-6 italic uppercase'>Placement Forecast Engine</h3>
+                            <div class='grid grid-cols-2 gap-4'>
+                                <div class='p-6 bg-white/5 rounded-3xl border border-white/10'>
+                                    <h4 class='text-3xl font-black text-emerald-400'>${forecast.predicted}</h4>
+                                    <p class='text-[8px] font-black uppercase tracking-widest mt-1'>Predicted Placements</p>
+                                </div>
+                                <div class='p-6 bg-white/5 rounded-3xl border border-white/10'>
+                                    <h4 class='text-3xl font-black text-slate-300'>${forecast.total}</h4>
+                                    <p class='text-[8px] font-black uppercase tracking-widest mt-1'>Total Candidates</p>
+                                </div>
+                            </div>
+                            <div class='mt-6 p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20'>
+                                <p class='text-[9px] text-emerald-400 font-bold'>The Institutional Forecast probability index is currently <b>${((forecast.predicted / forecast.total) * 100).toFixed(1)}%</b> for this cycle.</p>
+                            </div>
+                        </div>
+                    </div>
+
+            <div class='glass p-10 bg-rose-500/5 border border-rose-500/20'>
+                <h3 class='text-xl font-black italic uppercase mb-6'>Institutional Authority Directive</h3>
+                <div class='flex gap-4'>
+                    <input id='directive-input' type='text' placeholder='Enter global institutional directive...' class='flex-1 bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm font-medium outline-none focus:border-rose-500 transition-all'>
+                        <button onclick='authorityDirective()' class='bg-rose-600 px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-rose-600/20 hover:scale-105 transition-all'>Transmit Directive</button>
+                </div>
+                <p class='text-[9px] text-rose-400 font-bold uppercase mt-4'>🔴 Warning: This directive will be broadcasted to all students and faculty with Priority Alpha clearance.</p>
+            </div>
+        `);
+            }
+
+            if (t === "System Config") return h(`
+                <div class='glass p-10 bg-indigo-900/10 flex flex-col items-center justify-center space-y-6 text-center'>
+                    <div class='w-20 h-20 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin'></div>
+                    <h3 class='text-2xl font-black italic uppercase'>Neural Architecture Locked</h3>
+                    <p class='text-sm text-slate-500 max-w-md'>This interface requires **Super-Admin Authentication**. Your current credentials allow **ReadOnly** monitoring of the Institutional Core.</p>
+                </div >
+            `);
+
+            if (t === "Security Log") return h(`
+                <div class='glass p-10 font-mono text-xs space-y-2'>
+                    <p class='text-indigo-400'>[SYSTEM] Neural link established: Admin.it</p>
+                    <p>[AUDIT] Port 8080 monitoring active...</p>
+                    <p>[AUTH] HOD Directive Channel: ENCRYPTED</p>
+                    <p class='text-emerald-500'>[SAFE] Institutional firewall 100% active.</p>
+                </div >
+            `);
+
+            if (t === "Drive Management") return h(`
+                <div class='glass p-8'>
+                     <div class='flex justify-between items-center mb-10'>
+                        <h3 class='text-2xl font-black italic uppercase'>Neural Drive Center</h3>
+                        <button onclick='addDriveManually()' class='bg-emerald-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20'>Initialize New Drive</button>
+                    </div>
+                    <div class='space-y-4'>
+                        ${(GLOBAL_SYNC.drives || []).length === 0 ? "<p class='text-slate-500 italic text-center py-10'>No Active Drives in Sequence.</p>" : (GLOBAL_SYNC.drives || []).map((d, i) => `
+                            <div class='flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/10'>
+                                <div class='flex items-center gap-6'>
+                                     <div class='w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-black text-xs'>D${i + 1}</div>
+                                     <div>
+                                        <h4 class='font-bold uppercase text-xs mb-1'>${d.title}</h4>
+                                        <p class='text-[10px] text-slate-400'>${d.desc}</p>
+                                        <div class='flex gap-2 mt-2'><span class='text-[8px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase'>${d.status}</span></div>
+                                    </div>
+                                </div>
+                                <div class='flex gap-2'>
+                                    <button onclick='deleteDrive(${i})' class='px-4 py-2 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl text-[9px] font-black uppercase hover:bg-rose-500 hover:text-white transition-all'>Deactivate</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `);
+
+            return h(`<div class='p-20 text-center text-4xl font-black italic opacity-10 uppercase tracking-tighter'>${t} Portal Component Synchronizing...</div>`);
+        }
+
+        async function handleTalk(e) {
+            if (e.key === "Enter") {
+                let v = "";
+                // Compatibility for explicit values (e.g. Buttons)
+                if (e.target.value) {
+                    v = e.target.value.trim();
+                } else {
+                    const inp = document.getElementById('main-input');
+                    if (inp) v = inp.value.trim();
+                }
+
+                if (!v) return;
+
+                // Clear input if exists
+                const inp = document.getElementById('main-input');
+                if (inp) inp.value = "";
+
+                // Real-time analysis (safe check)
+                if (typeof AI_ANALYZER !== 'undefined') AI_ANALYZER.analyze(v);
+
+                // Show User Message (if chat exists)
+                let box = document.getElementById('chat');
+                if (box) {
+                    box.innerHTML += `<div class='flex justify-end animate-in slide-in-from-right-2 fade-in mb-4'><div class='bg-indigo-600 p-5 rounded-3xl rounded-tr-none max-w-lg text-white font-medium shadow-lg'>${v}</div></div>`;
+                    box.scrollTop = box.scrollHeight;
+                }
+
+                // Analyze & Respond with Delay
+                setTimeout(async () => {
+                    let response = "";
+                    let lower = v.toLowerCase();
+                    let stateChanged = false;
+
+                    // --- DISCOVERY FLOW LOGIC ---
+                    if (DB.ai.state === "discovery") {
+                        if (DB.ai.subState === "company") {
+                            const cos = Object.keys(DB.ai.dataset);
+                            const found = cos.find(c => lower.includes(c.toLowerCase()));
+                            if (found) {
+                                DB.ai.tempSelection.co = found;
+                                DB.ai.subState = "role";
+                                response = `Neural Path <b>${found}</b> Locked. Identifying Role... Which role are you targeting? (e.g., <b>${Object.keys(DB.ai.dataset[found]).join(', ')}</b>)`;
+                            } else {
+                                response = `Company not found in Neural Core.Please specify: <b>${cos.join(' | ')}</b>`;
+                            }
+                        } else if (DB.ai.subState === "role") {
+                            const rols = Object.keys(DB.ai.dataset[DB.ai.tempSelection.co]);
+                            const found = rols.find(r => lower.includes(r.toLowerCase()));
+                            if (found) {
+                                DB.ai.tempSelection.ro = found;
+                                DB.ai.subState = "round";
+                                response = `Role <b>${found}</b> Established. Select Round Complexity: <b>${Object.keys(DB.ai.dataset[DB.ai.tempSelection.co][found]).join(' | ')}</b>`;
+                            } else {
+                                response = `Role deviation detected.Choose from: <b>${rols.join(' | ')}</b>`;
+                            }
+                        } else if (DB.ai.subState === "round") {
+                            const rounds = Object.keys(DB.ai.dataset[DB.ai.tempSelection.co][DB.ai.tempSelection.ro]);
+                            const found = rounds.find(rd => lower.includes(rd.toLowerCase()));
+                            if (found) {
+                                DB.ai.tempSelection.rd = found;
+                                DB.ai.state = "interview";
+                                DB.ai.subState = "";
+                                stateChanged = true;
+                                DB.ai.questionIndex = 0;
+                                const firstQ = DB.ai.dataset[DB.ai.tempSelection.co][DB.ai.tempSelection.ro][DB.ai.tempSelection.rd][0].q;
+                                response = `<div class='text-indigo-400 font-black mb-4 uppercase tracking-[0.2em]'>Institutional Lockdown: Interview Active</div><b>Sequence 1:</b> ${firstQ}`;
+                            } else {
+                                response = `Invalid Round.Available: <b>${rounds.join(' | ')}</b>`;
+                            }
+                        }
+                    }
+                    // --- ACTIVE INTERVIEW LOGIC ---
+                    else if (DB.ai.state === "interview") {
+                        const currentSet = DB.ai.dataset[DB.ai.tempSelection.co][DB.ai.tempSelection.ro][DB.ai.tempSelection.rd];
+                        const currentQ = currentSet[DB.ai.questionIndex];
+
+                        // SEMANTIC TECHNICAL AUDIT
+                        let isCorrect = false;
+                        let feedbackMsg = "";
+
+                        // 1. ChatGPT Semantic Audit (True Meaning)
+                        if (typeof OPENAI_KEY !== 'undefined' && OPENAI_KEY) {
+                            const result = await verifySemanticMatch(v, currentQ.k.join(", "), currentQ.q);
+                            if (result) {
+                                isCorrect = result.correct;
+                                feedbackMsg = result.reason;
+                            }
+                        }
+                        // 2. Local Fallback (Enhanced Heuristic)
+                        if (!isCorrect && (typeof OPENAI_KEY === 'undefined' || !OPENAI_KEY)) {
+                            const semanticScore = AI_ANALYZER.semanticMatch(v, currentQ.k);
+                            isCorrect = semanticScore > 0.4;
+                            feedbackMsg = isCorrect ? "Local Concept Match" : "Concept Drift Detected";
+                        }
+
+                        if (isCorrect) DB.ai.scoreTracker += (100 / currentSet.length);
+
+                        DB.ai.sessionData.push({
+                            q: currentQ.q,
+                            a: v,
+                            isCorrect: isCorrect,
+                            mistakes: isCorrect ? [] : [`<span class='text-rose-400'>[CONCEPTUAL]</span> ${feedbackMsg}`],
+                            sol: currentQ.sol,
+                            linguisticSol: v
+                        });
+
+                        response = `<div class='text-indigo-400 font-bold mb-2 uppercase tracking-tighter'>Synapse Link: ${isCorrect ? 'CONCEPT_VERIFIED' : 'SEMANTIC_DRIFT'} <span class='text-[10px] text-slate-500 normal-case ml-2'>(${feedbackMsg})</span></div>`;
+
+                        DB.ai.questionIndex++;
+                        if (DB.ai.questionIndex < currentSet.length) {
+                            response += `<div class='mt-6 pt-4 border-t border-white/10'><b class='text-white text-base'>Next Question (${DB.ai.questionIndex + 1}/${currentSet.length}):</b> ${currentSet[DB.ai.questionIndex].q}</div>`;
+                        } else {
+                            DB.ai.state = "idle";
+                            stateChanged = true;
+                            if (videoStream) toggleVideo(); // Auto-stop video
+                            response += `
+                                <div class='mt-8 pt-6 border-t border-indigo-500/30 text-center'>
+                                    <div class='text-emerald-400 font-black animate-pulse mb-6 uppercase tracking-widest italic'>Interview Complete</div>
+                                    <button onclick='showFinalReport()' class='bg-emerald-600 px-8 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-widest shadow-xl'>Access Final Report</button>
+                                </div>`;
+                        }
+                    }
+                    // --- IDLE LOGIC ---
+                    else {
+                        let wikiInfo = null;
+                        if (v.toLowerCase().includes("what is") || v.toLowerCase().includes("explain") || v.toLowerCase().includes("define")) {
+                            const query = v.replace(/what is|explain|define|\?/gi, "").trim();
+                            wikiInfo = await fetchWikipedia(query);
+                        }
+
+                        if (typeof OPENAI_KEY !== 'undefined' && OPENAI_KEY) {
+                            response = await callChatGPT(v, wikiInfo);
+                        } else if (wikiInfo) {
+                            response = wikiInfo;
+                        } else if (DB.ai.interviewTriggers.some(t => lower.includes(t))) {
+                            DB.ai.state = "discovery";
+                            stateChanged = true;
+                            if (!videoStream) toggleVideo(); // Auto-start video
+                            DB.ai.subState = "company";
+                            DB.ai.scoreTracker = 0;
+                            DB.ai.sessionData = [];
+                            AI_ANALYZER.reset();
+                            response = "<b>Discovery Protocol Initialized.</b> Targeted Company? (e.g., <b>Amazon, Google</b>)";
+                        } else {
+                            response = "Neural Matrix Idle. Say <b>'Start Interview'</b> to begin calibration.";
+                        }
+                    }
+
+                    // CRITICAL: Refresh UI if state changed (e.g. Idle -> Interview)
+                    if (stateChanged) {
+                        const gate = document.getElementById('hub-content');
+                        if (gate) gate.innerHTML = getTabHTML("AI Interview");
+                        // Wait briefly for DOM to paint
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+
+                    // Re-acquire chat box after potential refresh
+                    box = document.getElementById('chat');
+                    if (box) {
+                        box.innerHTML += `<div class='flex animate-in slide-in-from-left-2 fade-in mb-6'><div class='glass p-7 rounded-3xl rounded-tl-none max-w-2xl text-slate-300 border border-white/10'>${response}</div></div>`;
+                        box.scrollTop = box.scrollHeight;
+                    }
+
+                    // Voice out
+                    if (typeof AI_VOICE !== 'undefined') AI_VOICE.speak(response);
+
+                }, 1000);
+            }
+        }
+
+        function showFinalReport() {
+            const finalScore = DB.ai.scoreTracker;
+            const modal = document.getElementById('hub-content');
+
+            let recapHTML = DB.ai.sessionData.map((d, i) => `
+                <div class='bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8 relative group overflow-hidden'>
+                    <div class='absolute top-0 right-0 p-6 text-4xl opacity-5 font-black uppercase text-indigo-400'>Turn ${i + 1}</div>
+                    
+                    <div class='flex justify-between items-start mb-6'>
+                        <h4 class='text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400'>Question Sequence</h4>
+                        </span>
+                    </div>
+                    
+                    <p class='text-base font-bold text-white mb-6 italic leading-relaxed'>"${d.q}"</p>
+                    
+                    <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        <div class='bg-black/40 p-5 rounded-2xl'>
+                            <p class='text-[10px] uppercase text-slate-500 mb-3 font-black tracking-widest'>Your Institutional Answer:</p>
+                            <p class='text-xs text-slate-300 leading-relaxed font-medium'>${d.a}</p>
+                        </div>
+                        
+                        <div class='bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10'>
+                            <p class='text-[10px] uppercase text-emerald-500 mb-3 font-black tracking-widest'>Perfection Solution (Official):</p>
+                            <p class='text-xs text-emerald-100 leading-relaxed italic'>${!d.isCorrect ? d.sol : d.linguisticSol}</p>
+                        </div>
+                    </div>
+
+                    ${d.mistakes.length > 0 ? `
+                        <div class='mt-6 pt-6 border-t border-white/5'>
+                            <p class='text-[10px] uppercase text-rose-500 font-black mb-3 tracking-widest'>Neural Audit Identifications:</p>
+                            <ul class='text-[11px] space-y-2 text-slate-400 font-medium'>${d.mistakes.map(m => `<li class='flex items-center gap-2'><span class='w-1 h-1 bg-rose-500 rounded-full'></span>${m}</li>`).join('')}</ul>
+                        </div>
+                    ` : ""}
+                </div>
+            `).join('');
+
+            modal.innerHTML = `
+                <div class='tab-active space-y-8 animate-in zoom-in-95 duration-500 pb-20'>
+                    <div class='glass p-12 text-center relative overflow-hidden'>
+                        <div class='absolute top-0 right-0 p-8 text-6xl opacity-10 font-black tracking-tighter'>T1 FINAL AUDIT</div>
+                        <h2 class='text-4xl font-black mb-10 italic uppercase tracking-widest text-indigo-400'>Neural Synapse Report</h2>
+
+                        <div class='flex justify-center items-end gap-2 mb-10'>
+                            <span class='text-9xl font-black gradient-text'>${finalScore}</span>
+                            <span class='text-4xl font-bold text-slate-600 mb-4'>/100</span>
+                        </div>
+
+                        <div class='h-3 w-full bg-white/5 rounded-full mb-12 overflow-hidden'>
+                            <div class='h-full gradient-bg' style='width: ${finalScore}%'></div>
+                        </div>
+
+                        <div class='text-left max-w-4xl mx-auto'>
+                            <h3 class='text-xl font-black mb-8 italic uppercase tracking-widest text-slate-400'>Deep Sequence Recap</h3>
+                            ${recapHTML}
+                        </div>
+
+                        <div class='bg-indigo-600/10 p-10 rounded-[3rem] mt-12 border border-indigo-500/20 text-left max-w-4xl mx-auto'>
+                            <h4 class='text-[10px] font-black text-indigo-400 uppercase mb-4 tracking-widest'>Institutional Summary</h4>
+                            <p class='text-sm leading-relaxed italic text-indigo-100'>
+                                ${finalScore >= 80 ? "Your technical density is within the 99th percentile for Tier-1 engineering. Your structural articulation is elite. Recommended: Senior System Design Track." : "Your neural pathways require optimization in high-concurrency logic and professional linguistic framing. Review the specific 'Perfection Solutions' provided in the recap above to prevent recurrent errors."}
+                            </p>
+                        </div>
+
+                        <button onclick='navigate("AI Interview")' class='mt-12 bg-indigo-600 px-10 py-5 rounded-2xl text-white font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all'>RE-INITIATE SYNCHRONIZATION</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function simUp() {
+            document.getElementById('resume-file-input').click();
+        }
+
+        function analyzeResumeContent(dataOrText) {
+            const K_MAP = {
+                backend: ["java", "python", "node", "express", "django", "spring", "microservices", "api", "rest", "grpc", "graphql", "sql", "postgresql", "mongodb", "redis", "kafka", "rabbit", "docker", "kubernetes", "aws", "azure", "gcp", "serverless", "distributed", "concurrency", "auth", "jwt", "oauth"],
+                frontend: ["react", "vue", "angular", "nextjs", "vite", "typescript", "javascript", "tailwind", "sass", "redux", "context", "dom", "ssr", "pwa", "webpack", "babel", "framer"],
+                mobile: ["flutter", "react native", "swift", "kotlin", "android", "ios", "firebase", "dart", "xcode", "gradle"],
+                ai_ml: ["pytorch", "tensorflow", "keras", "scikit", "pandas", "numpy", "opencv", "transformers", "llm", "nlp", "vision", "cuda", "reinforcement", "clustering"],
+                devops: ["jenkins", "gitlab", "github actions", "terraform", "ansible", "prometheus", "grafana", "linux", "bash", "nginx", "ci/cd", "monitoring", "vault"],
+                soft_skills: ["leadership", "collaboration", "management", "communication", "problem solving", "agile", "scrum", "sdlc"]
+            };
+            const VERBS = ["led", "built", "architected", "optimized", "reduced", "scaled", "automated", "designed", "integrated", "transformed", "engineered"];
+            const allK = Object.values(K_MAP).flat();
+
+            let techScore = 0, impactScore = 0, structureScore = 0, verbScore = 0;
+            const feedback = { success: [], gaps: [] };
+
+            const isText = typeof dataOrText === 'string';
+            const fullText = isText ? dataOrText.toLowerCase() : JSON.stringify(dataOrText).toLowerCase();
+
+            // 1. Structural Audit (20%)
+            if (isText) {
+                // Heuristic checks for text-based resumes
+                if (fullText.length > 500) structureScore += 30;
+                else feedback.gaps.push("Short on Content: Try adding more details about your projects or roles.");
+                if (fullText.includes("experience") || fullText.includes("work") || fullText.includes("internship")) {
+                    structureScore += 40;
+                    feedback.success.push("Great Layout: Your work experience is easy to find.");
+                } else feedback.gaps.push("Missing Experience: Make sure to list your previous roles or internships clearly.");
+                if (fullText.includes("education") || fullText.includes("university") || fullText.includes("college")) {
+                    structureScore += 30;
+                } else feedback.gaps.push("Education Info Missing: Don't forget to add your college or degree details.");
+            } else {
+                if (dataOrText.name && dataOrText.summary) structureScore += 30;
+                else feedback.gaps.push("Add a Summary: A short intro at the top helps recruiters know you quickly.");
+                if (dataOrText.xp && dataOrText.xp.length > 0) {
+                    structureScore += 40;
+                    if (dataOrText.xp.length >= 2) structureScore += 10;
+                    feedback.success.push("Professional Flow: Your profile structure looks clean and organized.");
+                } else feedback.gaps.push("Add Work History: List your previous roles to show your real-world experience.");
+                if (dataOrText.edu && dataOrText.edu.length > 0) structureScore += 20;
+                else feedback.gaps.push("Add Education: Tell us about your degree and university.");
+            }
+
+            // 2. Technical Density (60%)
+            const foundK = allK.filter(k => fullText.includes(k));
+            const uniqueDomains = Object.keys(K_MAP).filter(d => K_MAP[d].some(k => fullText.includes(k)));
+            techScore = Math.min(100, (foundK.length / 20) * 100); // Dynamic threshold
+            if (uniqueDomains.length >= 2) {
+                techScore = Math.min(100, techScore + 10);
+                feedback.success.push(`Wide Skill Range: You have a good mix of skills in ${uniqueDomains.slice(0, 2).join(' and ')}.`);
+            }
+            if (techScore < 40) feedback.gaps.push("Boost Your Skills: Try adding more tech keywords like 'Docker', 'AWS', or 'Cloud'.");
+
+            // 3. Impact & Verbs (20%)
+            const numMatch = fullText.match(/\d+(%|\s[A-Z]+|\s?x|%?\s?increase|%?\s?decrease|saved|optimized)/gi);
+            const foundVerbs = VERBS.filter(v => fullText.includes(v));
+            impactScore = Math.min(100, (numMatch ? numMatch.length : 0) * 15);
+            verbScore = Math.min(100, (foundVerbs.length / VERBS.length) * 100);
+
+            if (impactScore > 40) feedback.success.push("Showcasing Impact: Great job using numbers to show your results.");
+            else feedback.gaps.push("Use More Numbers: Recruiters love seeing results like 'Improved by 40%'.");
+            if (verbScore > 40) feedback.success.push("Action-Oriented: You use strong words like 'Led' and 'Built'.");
+
+            const finalScore = ((techScore * 0.6) + (impactScore * 0.2) + (structureScore * 0.2)).toFixed(1);
+
+            return {
+                score: finalScore,
+                metrics: { tech: techScore.toFixed(0), impact: impactScore.toFixed(0), structure: structureScore.toFixed(0) },
+                success: feedback.success.slice(0, 3),
+                gaps: feedback.gaps.slice(0, 3)
+            };
+        }
+
+        async function extractTextFromFile(file) {
+            if (file.type === "application/pdf") {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let text = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(" ");
+                }
+                return text;
+            } else {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsText(file);
+                });
+            }
+        }
+
+        function simulateNeuralExtraction(file) {
+            const name = file.name.toLowerCase();
+            const shadowData = {
+                name: "Neural Identity",
+                summary: "Highly precise professional summary architected for enterprise selection.",
+                xp: [],
+                edu: [{ deg: "B.Tech Engineering", inst: "Institutional University", date: "2024", gpa: "9.2" }],
+                skills: [],
+                projects: []
+            };
+
+            const SECTORS = [
+                { k: ["java", "spring", "backend", "j2ee"], s: ["Java", "Spring Boot", "Microservices", "PostgreSQL", "Kafka"], role: "Senior Java Architect" },
+                { k: ["python", "django", "fastapi", "ml"], s: ["Python", "TensorFlow", "FastAPI", "Pandas", "PyTorch"], role: "ML Engineer" },
+                { k: ["react", "web", "frontend", "next"], s: ["React", "Next.js", "TypeScript", "Tailwind", "Vite"], role: "Fullstack Web Strategist" },
+                { k: ["cyber", "security", "pentest"], s: ["Linux", "Bash", "Encryption", "Firewalls", "Network Security"], role: "Security Analyst" },
+                { k: ["devops", "cloud", "aws", "docker"], s: ["Docker", "Kubernetes", "AWS", "Terraform", "Jenkins"], role: "Cloud Ops Engineer" }
+            ];
+
+            let matched = SECTORS.find(s => s.k.some(kw => name.includes(kw)));
+            if (!matched) matched = { s: ["Software Engineering", "Algorithms", "System Design", "C++", "SQL"], role: "Universal Systems Engineer" };
+
+            shadowData.skills = matched.s;
+            shadowData.xp.push({
+                role: matched.role,
+                co: "Global Tech Synapse",
+                date: "2023 - Present",
+                desc: `Led development of a high - concurrency system using ${matched.s.slice(0, 3).join(", ")
+                    }. Optimized backend latency by 45 % and scaled user base to 1.2M.Automated CI / CD pipelines significantly.`
+            });
+
+            return shadowData;
+        }
+
+        async function navigate(t) {
+            try {
+                // Update UI State
+                document.querySelectorAll('nav button').forEach(b => {
+                    if (b.innerText.includes(t)) b.classList.add('bg-white/10', 'text-white', 'sidebar-active');
+                    else b.classList.remove('bg-white/10', 'text-white', 'sidebar-active');
+                });
+                document.getElementById('view-title').innerText = t;
+                const content = document.getElementById('hub-content');
+
+                // Show Loader
+                content.innerHTML = `< div class='h-full flex flex-col items-center justify-center animate-in fade-in duration-500' ><span class='loader mb-8'></span><p class='text-[10px] font-black uppercase text-indigo-400 tracking-[0.3em] animate-pulse'>Synchronizing Neural Link...</p></div > `;
+
+                // Simulate Network/Processing Delay (smooth UX)
+                setTimeout(() => {
+                    try {
+                        content.innerHTML = getTabHTML(t);
+                    } catch (renderErr) {
+                        console.error("Render Error:", renderErr);
+                        content.innerHTML = `< div class='p-10 text-rose-400' > Render Safe Mode: ${renderErr.message}</div > `;
+                    }
+                }, 600);
+            } catch (e) {
+                console.error("Navigation Failure:", e);
+                alert("Nav Error: " + e.message);
+            }
+        }
+
+        async function processResume(files) {
+            if (!files.length) return;
+            const file = files[0];
+            const s = document.getElementById('res-score');
+            const b = document.getElementById('res-btn-txt');
+
+            if (s) s.innerHTML = "<div class='flex flex-col items-center gap-4'><span class='loader mb-8'></span><p class='text-[10px] font-black uppercase text-indigo-400 tracking-[0.3em] animate-pulse'>Analyzing Real-Time Neural Patterns...</p></div>";
+            if (b) b.innerText = "Extracting Neural Vectors...";
+
+            const extractedText = await extractTextFromFile(file);
+
+            setTimeout(async () => {
+                const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+                const u = cloud[activeEmail];
+
+                // Prioritize extracted text for high-fidelity realtime analysis
+                const analysis = analyzeResumeContent(extractedText || u.resumeData);
+
+                const resData = {
+                    score: analysis.score,
+                    metrics: analysis.metrics,
+                    status: "Verified",
+                    date: new Date().toLocaleDateString(),
+                    fileName: file.name,
+                    success: analysis.success,
+                    gaps: analysis.gaps
+                };
+
+                cloud[activeEmail].resume = resData;
+                await ih_push(`ih_cloud / ${activeEmail.replace(/\./g, '_')}/resume`, resData);
+                localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+
+                showToast("Neural Audit Complete: Institutional Errors Mapped.");
+                navigate("Resume Hub");
+            }, 3000);
+        }
+
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.remove('translate-y-40', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-40', 'opacity-0'), 3000); }
+        function closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
+
+        function showStudentModal(email) {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            const s = cloud[email];
+            if (!s) return;
+            const container = document.getElementById('modal-container');
+            const body = document.getElementById('modal-body');
+            const header = document.getElementById('modal-header');
+
+            header.innerText = `${s.name} : Neural Synapse`;
+            body.innerHTML = `
+                <div class='col-span-1 space-y-6'>
+                    <div class='bg-white/5 p-6 rounded-3xl border border-white/10'>
+                        <h4 class='text-[10px] font-black text-indigo-400 uppercase mb-4'>Academic Identity</h4>
+                        <div class='space-y-2'><p class='text-sm font-bold'>${s.name}</p><p class='text-xs text-slate-500'>${email}</p><p class='text-xs text-emerald-400 font-black'>9.2 CGPA (Institutional)</p></div>
+                    </div>
+                </div>
+                <div class='col-span-1 space-y-6'>
+                    <div class='bg-white/5 p-6 rounded-3xl border border-white/10'>
+                        <h4 class='text-[10px] font-black text-indigo-400 uppercase mb-4'>Resume Analysis</h4>
+                        ${s.resume ? `
+                            <div class='flex items-center justify-between mb-6'>
+                                <div class='flex flex-col'>
+                                    <div class='text-4xl font-black'>${s.resume.score}</div>
+                                    <div class='text-[8px] font-black opacity-40 uppercase'>Institutional AI Score</div>
+                                </div>
+                                <div class='flex flex-col items-end gap-2'>
+                                    ${s.resume.manualVerified ? `
+                                        <div class='text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30'>FACULTY ENDORSED</div>
+                                    ` : `
+                                        <div class='text-[9px] font-black bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest'>AI VERIFIED</div>
+                                    `}
+                                </div>
+                            </div>
+                            <div class='grid grid-cols-3 gap-2 mb-6'>
+                                <div class='text-center p-2 bg-white/5 rounded-xl'><p class='font-bold'>${(s.resume.metrics && s.resume.metrics.tech) || 10}%</p><p class='text-[7px] uppercase font-black opacity-50'>Tech</p></div>
+                                <div class='text-center p-2 bg-white/5 rounded-xl'><p class='font-bold'>${(s.resume.metrics && s.resume.metrics.impact) || 10}%</p><p class='text-[7px] uppercase font-black opacity-50'>Impact</p></div>
+                                <div class='text-center p-2 bg-white/5 rounded-xl'><p class='font-bold'>${(s.resume.metrics && s.resume.metrics.structure) || 10}%</p><p class='text-[7px] uppercase font-black opacity-50'>Struct</p></div>
+                            </div>
+                            <div class='space-y-4'>
+                                <div class='p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20'>
+                                    <p class='text-[7px] font-black uppercase text-emerald-500 mb-2 tracking-widest'>Success Factors</p>
+                                    <ul class='text-[8px] space-y-1 text-slate-300'>${(s.resume.success || []).map(e => `<li>• ${e}</li>`).join('')}</ul>
+                                </div>
+                                <div class='p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20'>
+                                    <p class='text-[7px] font-black uppercase text-rose-500 mb-2 tracking-widest'>Optimization Gaps</p>
+                                    <ul class='text-[8px] space-y-1 text-slate-300'>${(s.resume.gaps || []).map(e => `<li>• ${e}</li>`).join('')}</ul>
+                                </div>
+                            </div>
+                            ${!s.resume.manualVerified ? `<button onclick="verifyStudentManually('${email}')" class='w-full mt-6 bg-indigo-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:scale-105 transition-all'>Endorse for T1 Drives</button>` : ""}
+                        ` : "<p class='text-xs italic text-slate-500'>No CV Audit available in current sequence.</p>"}
+                    </div>
+                </div>
+            `;
+            container.classList.remove('hidden');
+        }
+
+        function updateResume(key, val) {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            if (!cloud[activeEmail].resumeData) cloud[activeEmail].resumeData = { name: cloud[activeEmail].name, email: activeEmail, phone: "", summary: "", xp: [], edu: [], skills: [], projects: [] };
+            cloud[activeEmail].resumeData[key] = val;
+            localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+            document.getElementById('hub-content').innerHTML = getTabHTML("Resume Builder");
+        }
+
+        function updateResumeItem(type, index, key, val) {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            if (key) cloud[activeEmail].resumeData[type][index][key] = val;
+            else cloud[activeEmail].resumeData[type][index] = val;
+            localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+            document.getElementById('hub-content').innerHTML = getTabHTML("Resume Builder");
+        }
+
+        async function verifyStudentManually(email) {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            if (!cloud[email].resume) return showToast("No Resume found to verify.");
+            cloud[email].resume.manualVerified = true;
+            const verifierName = cloud[activeEmail].name; // Fix: Use Actual User Name, not Role Name
+            cloud[email].resume.verifiedBy = verifierName;
+            await ih_push(`ih_cloud/${email.replace(/\./g, '_')}/resume/manualVerified`, true);
+            await ih_push(`ih_cloud/${email.replace(/\./g, '_')}/resume/verifiedBy`, verifierName);
+            localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+            showToast("Faculty Endorsement Successful: Student Tier Locked.");
+            showStudentModal(email); // Refresh modal
+        }
+
+        function exportStudentData() {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            const students = Object.keys(cloud).filter(k => k && cloud[k] && cloud[k].role === 'student').map(k => ({ email: k, ...cloud[k] }));
+            let csv = "Name,Email,Dept,Batch,AI Score,Status\n";
+            students.forEach(s => {
+                const score = s.resume ? s.resume.score : "N/A";
+                const status = (s.resume && s.resume.manualVerified) ? "FACULTY_ENDORSED" : (s.resume ? "AI_VERIFIED" : "PENDING");
+                csv += `${s.name},${s.email},${s.dept || "CSE"},${s.batch || "2025"},${score},${status}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Institutional_Talent_Report_${new Date().toLocaleDateString()}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("Institutional Export Complete.");
+        }
+
+        function setFilter(type, val) {
+            if (type === 'dept') FILTER_DEPT = val;
+            if (type === 'batch') FILTER_BATCH = val;
+            if (type === 'skill') FILTER_SKILL = val.trim();
+            const activeTab = document.querySelector('.sidebar-active')?.innerText.trim();
+            if (activeTab) document.getElementById('hub-content').innerHTML = getTabHTML(activeTab);
+        }
+
+        function calculateSkillDensity() {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud')) || {};
+            const skillsMap = {};
+            let totalStudentsWithSkills = 0;
+
+            Object.values(cloud).forEach(u => {
+                if (u.role === 'student') {
+                    const skills = new Set();
+                    // Extract from builder data
+                    if (u.resumeData && u.resumeData.skills) {
+                        u.resumeData.skills.forEach(s => skills.add(s.toLowerCase().trim()));
+                    }
+                    // Extract from audit content if available (heuristic search for our K_MAP keys might be complex, let's stick to explicit skills)
+                    if (skills.size > 0) totalStudentsWithSkills++;
+                    skills.forEach(s => {
+                        skillsMap[s] = (skillsMap[s] || 0) + 1;
+                    });
+                }
+            });
+
+            const density = Object.keys(skillsMap).map(k => ({
+                name: k.toUpperCase(),
+                percent: totalStudentsWithSkills > 0 ? ((skillsMap[k] / totalStudentsWithSkills) * 100).toFixed(1) : 0
+            })).sort((a, b) => b.percent - a.percent).slice(0, 5);
+
+            return density;
+        }
+
+
+        function calculateLiveDeptAnalytics() {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud')) || {};
+            const students = Object.values(cloud).filter(u => u.role === 'student' && (FILTER_DEPT === "ALL" || u.dept === FILTER_DEPT));
+            if (students.length === 0) return { avg: 0, count: 0 };
+            const total = students.reduce((acc, s) => acc + (parseFloat(s.resume?.score) || 0), 0);
+            return { avg: (total / students.length).toFixed(1), count: students.length };
+        }
+
+        function getPlacementForecast() {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud')) || {};
+            const students = Object.values(cloud).filter(u => u.role === 'student');
+            let t1 = 0, t2 = 0, t3 = 0;
+            students.forEach(s => {
+                const sc = parseFloat(s.resume?.score) || 0;
+                if (sc > 85) t1++;
+                else if (sc >= 60) t2++;
+                else t3++;
+            });
+            const predicted = Math.round((t1 * 0.95) + (t2 * 0.65) + (t3 * 0.30));
+            return { predicted, total: students.length, t1, t2, t3 };
+        }
+
+        function getStaffActivity() {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud')) || {};
+            const staffMap = {};
+
+            // Initialize known faculty from seed/cloud to ensure they appear even with 0 activity
+            Object.values(cloud).filter(u => u.role === 'faculty').forEach(f => {
+                staffMap[f.name] = { name: f.name, role: "FA", activity: 0 };
+            });
+
+            // Count actual verifications 
+            Object.values(cloud).filter(u => u.role === 'student' && u.resume && u.resume.manualVerified).forEach(s => {
+                const verifier = s.resume.verifiedBy || "Unknown Faculty";
+                if (!staffMap[verifier]) staffMap[verifier] = { name: verifier, role: "FA", activity: 0 };
+                staffMap[verifier].activity++;
+            });
+
+            // Always add AI
+            const aiCount = Object.values(cloud).filter(u => u.resume && u.resume.status === "Verified" && !u.resume.manualVerified).length;
+            const staffList = Object.values(staffMap);
+            staffList.push({ name: "Institutional AI", role: "AI", activity: aiCount });
+
+            return staffList.sort((a, b) => b.activity - a.activity);
+        }
+
+        async function authorityDirective() {
+            const v = document.getElementById('directive-input').value.trim();
+            if (!v) return;
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            const senderName = cloud[activeEmail] ? cloud[activeEmail].name : "Institutional Authority";
+            const b = { sender: senderName, text: `🔴 PRIORITY ALPHA: ${v}`, time: new Date().toLocaleTimeString(), priority: "ALPHA" };
+            GLOBAL_SYNC.broadcasts.push(b);
+            await ih_push('ih_global/broadcasts', GLOBAL_SYNC.broadcasts);
+            document.getElementById('directive-input').value = "";
+            showToast("Authority Directive Transmitted.");
+            navigate("Dept Analytics");
+        }
+
+        function addResumeItem(type) {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            if (!cloud[activeEmail].resumeData) cloud[activeEmail].resumeData = { name: cloud[activeEmail].name, email: activeEmail, phone: "", summary: "", xp: [], edu: [], skills: [], projects: [] };
+            const templates = { xp: { role: "New Role", co: "New Co", date: "2024", desc: "Short desc..." }, skills: "New Skill", edu: { deg: "Degree", inst: "University", date: "Year", gpa: "0.0" } };
+            cloud[activeEmail].resumeData[type].push(templates[type]);
+            localStorage.setItem('ih_cloud', JSON.stringify(cloud));
+            navigate("Resume Builder");
+        }
+
+        async function finalizeResumeSave() {
+            const cloud = JSON.parse(localStorage.getItem('ih_cloud'));
+            await ih_push(`ih_cloud/${activeEmail.replace(/\./g, '_')}/resumeData`, cloud[activeEmail].resumeData);
+            showToast("Neural Profile Synchronized to Cloud.");
+        }
+
+        // --- ROBUST AGENT LOGIC (ENHANCED) ---
+        function toggleAgent() {
+            const p = document.getElementById('agent-panel');
+            p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        class VoiceEngine {
+            constructor() {
+                this.synth = window.speechSynthesis;
+                this.recognition = 'webkitSpeechRecognition' in window ? new webkitSpeechRecognition() : null;
+                this.isListening = false;
+
+                if (this.recognition) {
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = true;
+                    this.recognition.onresult = (event) => {
+                        const transcript = Array.from(event.results)
+                            .map(result => result[0])
+                            .map(result => result.transcript)
+                            .join('');
+
+                        // Target Main Input
+                        const inp = document.getElementById('main-input');
+                        if (inp) inp.value = transcript;
+
+                        if (event.results[0].isFinal) {
+                            this.stopListening();
+                            // Trigger Main Interview Logic
+                            handleTalk({ key: 'Enter', target: { value: transcript } });
+                        }
+                    };
+                    this.recognition.onend = () => this.stopListening();
+                }
+            }
+
+            speak(text) {
+                const utter = new SpeechSynthesisUtterance(text.replace(/<[^>]*>?/gm, ''));
+                utter.rate = 1.1; utter.pitch = 1.0;
+                this.synth.speak(utter);
+            }
+
+            listen() {
+                if (!this.recognition) { showToast("Speech not supported"); return; }
+                if (this.isListening) { this.stopListening(); } else {
+                    this.isListening = true; this.recognition.start();
+                    // Update main UI button
+                    const btn = document.getElementById('main-voice-btn');
+                    if (btn) btn.classList.add('animate-pulse', 'bg-red-500/20', 'text-red-400');
+                    // Show viz
+                    const viz = document.getElementById('main-neural-viz');
+                    if (viz) viz.classList.remove('hidden');
+                    this.animateWave(true);
+                }
+            }
+
+            stopListening() {
+                this.isListening = false; if (this.recognition) this.recognition.stop();
+                const btn = document.getElementById('main-voice-btn');
+                if (btn) btn.classList.remove('animate-pulse', 'bg-red-500/20', 'text-red-400');
+                const viz = document.getElementById('main-neural-viz');
+                if (viz) viz.classList.add('hidden');
+                this.animateWave(false);
+            }
+
+            animateWave(active) {
+                const bars = document.querySelectorAll('.wave-bar');
+                if (!active) { bars.forEach(b => b.style.height = '4px'); return; }
+                const interval = setInterval(() => {
+                    if (!this.isListening) { clearInterval(interval); return; }
+                    bars.forEach(b => b.style.height = Math.random() * 20 + 4 + 'px');
+                }, 100);
+            }
+        }
+
+        class RealTimeAnalyzer {
+            constructor() {
+                this.fillers = ['um', 'uh', 'like', 'actually', 'basically', 'you know'];
+                this.stats = { confidence: 0, tech: 0, fillers: 0, sentiment: 'NEUTRAL' };
+                // Enhanced Fallback Semantic Map
+                this.synonyms = {
+                    "architecture": ["structure", "design", "system", "blueprint", "pattern"],
+                    "scaling": ["growth", "expansion", "load", "capacity", "volume"],
+                    "latency": ["delay", "speed", "lag", "response time", "wait"],
+                    "database": ["storage", "sql", "nosql", "data", "persistence"],
+                    "api": ["interface", "endpoint", "connection", "link", "rest"],
+                    "frontend": ["ui", "interface", "client", "visual", "display"],
+                    "backend": ["server", "logic", "database", "cloud", "core"]
+                };
+            }
+
+            reset() {
+                this.stats = { confidence: 0, tech: 0, fillers: 0, sentiment: 'NEUTRAL' };
+                this.updateUI();
+            }
+
+            semanticMatch(input, targetKeywords) {
+                const lowerInput = input.toLowerCase();
+                let matches = 0;
+                targetKeywords.forEach(k => {
+                    const kw = k.toLowerCase();
+                    // 1. Exact/Partial Match
+                    if (lowerInput.includes(kw)) matches += 1;
+                    else {
+                        // 2. Root Match
+                        const root = kw.substring(0, Math.min(kw.length, 5));
+                        if (lowerInput.includes(root)) matches += 0.5;
+
+                        // 3. Synonym Match (Fallback Concept Check)
+                        if (this.synonyms[kw]) {
+                            this.synonyms[kw].forEach(syn => {
+                                if (lowerInput.includes(syn)) matches += 0.4;
+                            });
+                        }
+                    }
+                });
+                return matches / targetKeywords.length;
+            }
+
+            analyze(text) {
+                const lower = text.toLowerCase();
+                this.fillers.forEach(f => {
+                    this.stats.fillers += (lower.match(new RegExp(`\\b${f}\\b`, 'g')) || []).length;
+                });
+                const techWords = ['architecture', 'api', 'distributed', 'concurrency', 'latency', 'database', 'microservices', 'scalability', 'frontend', 'backend', 'cloud', 'security'];
+                const techMatches = this.semanticMatch(text, techWords) * 5;
+                this.stats.tech = Math.min(100, Math.max(this.stats.tech, techMatches * 20));
+                this.stats.confidence = Math.min(100, Math.max(40, 100 - (this.stats.fillers * 5) + (this.stats.tech * 0.5)));
+                this.updateUI();
+            }
+
+            updateUI() {
+                const c = document.getElementById('main-conf');
+                const t = document.getElementById('main-tech');
+                if (c) c.innerText = Math.round(this.stats.confidence) + '%';
+                if (t) t.innerText = Math.round(this.stats.tech) + '%';
+            }
+        }
+
+        const AI_VOICE = new VoiceEngine();
+        const AI_ANALYZER = new RealTimeAnalyzer();
+        let OPENAI_KEY = localStorage.getItem('openai_key') || "";
+
+        async function fetchWikipedia(query) {
+            try {
+                document.getElementById('agent-status-text').innerText = "Researching Wikipedia...";
+                const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.type === 'standard' || data.type === 'disambiguation') {
+                    return `<b>[WIKIPEDIA]</b> ${data.extract}`;
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function showAgentSettings() {
+            const key = prompt("OpenAI API Key:", OPENAI_KEY);
+            if (key !== null) { OPENAI_KEY = key; localStorage.setItem('openai_key', key); updateGPTStatus(); }
+        }
+
+        function updateGPTStatus() {
+            const s = document.getElementById('gpt-status');
+            if (s) { s.innerText = OPENAI_KEY ? "SYNCHRONIZED (GPT-4o)" : "NOT LINKED"; s.className = OPENAI_KEY ? "text-emerald-400" : "text-indigo-400"; }
+        }
+
+        function toggleVoice() { AI_VOICE.listen(); }
+
+        // --- 🎥 VIDEO ENGINE + AI PROCTORING ---
+        let videoStream = null;
+        let faceDetectionModel = null;
+        let proctoringActive = false;
+        let violationCount = 0;
+        let lastFaceDetectionTime = Date.now();
+        let tabSwitchCount = 0;
+
+        // Proctoring Configuration
+        const PROCTORING_CONFIG = {
+            faceDetectionInterval: 1000, // Check every 1 second
+            maxNoFaceTime: 3000, // Alert after 3 seconds without face
+            maxTabSwitches: 3, // Alert after 3 tab switches
+            alertDuration: 3000, // Show alert for 3 seconds
+            violationThreshold: 5 // Maximum violations before warning
+        };
+
+        async function toggleVideo() {
+            const cam = document.getElementById('main-user-cam');
+            if (!cam) return; // Not in interview View
+
+            if (videoStream) {
+                // STOP VIDEO
+                stopProctoring();
+                videoStream.getTracks().forEach(t => t.stop());
+                videoStream = null;
+                cam.srcObject = null;
+                const btn = document.getElementById('main-video-btn');
+                if (btn) btn.classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
+            } else {
+                // START VIDEO
+                try {
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    cam.srcObject = videoStream;
+                    const btn = document.getElementById('main-video-btn');
+                    if (btn) btn.classList.add('bg-red-500/20', 'text-red-400', 'animate-pulse');
+
+                    // Start AI Proctoring
+                    await startProctoring();
+                    showToast("🎯 AI Proctoring Active");
+                } catch (e) {
+                    showToast("Camera Access Denied or Unavailable");
+                    console.error("Camera error:", e);
+                }
+            }
+        }
+
+        // --- AI PROCTORING SYSTEM ---
+        async function startProctoring() {
+            proctoringActive = true;
+            violationCount = 0;
+            updateViolationCounter();
+
+            // Load face detection model
+            if (!faceDetectionModel) {
+                try {
+                    showToast("Loading AI Proctoring Model...");
+                    faceDetectionModel = await blazeface.load();
+                    console.log("✅ Face detection model loaded");
+                } catch (e) {
+                    console.error("Failed to load face detection:", e);
+                    showToast("⚠️ Face detection unavailable, using basic monitoring");
+                }
+            }
+
+            // Start monitoring loops
+            startFaceDetection();
+            startTabMonitoring();
+            startPostureMonitoring();
+        }
+
+        function stopProctoring() {
+            proctoringActive = false;
+            document.getElementById('violation-counter').classList.remove('active');
+        }
+
+        // Face Detection Loop
+        async function startFaceDetection() {
+            if (!proctoringActive) return;
+
+            const cam = document.getElementById('main-user-cam');
+            if (!cam || !faceDetectionModel) {
+                setTimeout(startFaceDetection, PROCTORING_CONFIG.faceDetectionInterval);
+                return;
+            }
+
+            try {
+                const predictions = await faceDetectionModel.estimateFaces(cam, false);
+
+                if (predictions.length === 0) {
+                    // No face detected
+                    const timeSinceLastFace = Date.now() - lastFaceDetectionTime;
+                    if (timeSinceLastFace > PROCTORING_CONFIG.maxNoFaceTime) {
+                        triggerViolation("NO FACE DETECTED", "Please ensure your face is visible in the camera");
+                    }
+                } else if (predictions.length > 1) {
+                    // Multiple faces detected
+                    triggerViolation("MULTIPLE FACES DETECTED", "Only one person should be in frame during the interview");
+                    lastFaceDetectionTime = Date.now();
+                } else {
+                    // Face detected successfully
+                    lastFaceDetectionTime = Date.now();
+
+                    // Check face position (posture)
+                    const face = predictions[0];
+                    const videoWidth = cam.videoWidth;
+                    const videoHeight = cam.videoHeight;
+
+                    // Calculate face center
+                    const faceX = (face.topLeft[0] + face.bottomRight[0]) / 2;
+                    const faceY = (face.topLeft[1] + face.bottomRight[1]) / 2;
+
+                    // Check if face is centered (proper posture)
+                    const centerX = videoWidth / 2;
+                    const centerY = videoHeight / 2;
+                    const offsetX = Math.abs(faceX - centerX);
+                    const offsetY = Math.abs(faceY - centerY);
+
+                    // If face is too far from center (looking away)
+                    if (offsetX > videoWidth * 0.3 || offsetY > videoHeight * 0.3) {
+                        triggerViolation("IMPROPER POSTURE", "Please sit straight and look at the camera");
+                    }
+                }
+            } catch (e) {
+                console.error("Face detection error:", e);
+            }
+
+            // Continue loop
+            setTimeout(startFaceDetection, PROCTORING_CONFIG.faceDetectionInterval);
+        }
+
+        // Tab Change Monitoring
+        function startTabMonitoring() {
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('blur', handleWindowBlur);
+        }
+
+        function handleVisibilityChange() {
+            if (!proctoringActive) return;
+
+            if (document.hidden) {
+                tabSwitchCount++;
+                triggerViolation("TAB SWITCH DETECTED", `You switched tabs/windows (${tabSwitchCount} times). Stay focused on the interview!`);
+
+                if (tabSwitchCount >= PROCTORING_CONFIG.maxTabSwitches) {
+                    triggerViolation("EXCESSIVE TAB SWITCHING", "⚠️ WARNING: Multiple tab switches detected. This may be flagged as suspicious behavior.");
+                }
+            }
+        }
+
+        function handleWindowBlur() {
+            if (!proctoringActive || document.hidden) return;
+            triggerViolation("WINDOW FOCUS LOST", "Please keep the interview window in focus");
+        }
+
+        // Posture Monitoring (simplified - checks for movement)
+        function startPostureMonitoring() {
+            // This is a placeholder for more advanced posture detection
+            // In production, you'd use pose estimation models like PoseNet or MoveNet
+            console.log("📊 Posture monitoring active (basic mode)");
+        }
+
+        // Violation Alert System
+        function triggerViolation(title, message) {
+            violationCount++;
+            updateViolationCounter();
+
+            // Show red buzzer alert
+            const alert = document.getElementById('violation-alert');
+            const overlay = document.getElementById('proctoring-overlay');
+            const titleEl = document.getElementById('violation-title');
+            const messageEl = document.getElementById('violation-message');
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+
+            alert.classList.add('active');
+            overlay.classList.add('active');
+
+            // Play buzzer sound
+            playBuzzerSound();
+
+            // Log violation
+            console.warn(`🚨 VIOLATION #${violationCount}: ${title} - ${message}`);
+
+            // Auto-hide after duration
+            setTimeout(() => {
+                alert.classList.remove('active');
+                overlay.classList.remove('active');
+            }, PROCTORING_CONFIG.alertDuration);
+
+            // Check if threshold exceeded
+            if (violationCount >= PROCTORING_CONFIG.violationThreshold) {
+                setTimeout(() => {
+                    triggerCriticalWarning();
+                }, PROCTORING_CONFIG.alertDuration + 500);
+            }
+        }
+
+        function updateViolationCounter() {
+            const counter = document.getElementById('violation-counter');
+            const countEl = document.getElementById('violation-count');
+
+            countEl.textContent = violationCount;
+
+            if (violationCount > 0) {
+                counter.classList.add('active');
+            }
+        }
+
+        function playBuzzerSound() {
+            // Create buzzer sound using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800; // Buzzer frequency
+                oscillator.type = 'square';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+        }
+
+        function triggerCriticalWarning() {
+            const alert = document.getElementById('violation-alert');
+            const overlay = document.getElementById('proctoring-overlay');
+            const titleEl = document.getElementById('violation-title');
+            const messageEl = document.getElementById('violation-message');
+
+            titleEl.textContent = "⚠️ CRITICAL WARNING";
+            messageEl.innerHTML = `You have accumulated <b>${violationCount}</b> violations.<br> Your interview may be flagged for review.<br> <br>Please maintain proper interview etiquette.`;
+
+            alert.classList.add('active');
+            overlay.classList.add('active');
+
+            // Play longer buzzer
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => playBuzzerSound(), i * 600);
+            }
+
+            // Keep alert visible longer
+            setTimeout(() => {
+                alert.classList.remove('active');
+                overlay.classList.remove('active');
+            }, 6000);
+        }
+
+
+        // --- 🧠 SEMANTIC VERIFICATION ENGINE ---
+        async function verifySemanticMatch(answer, concept, question) {
+            if (!OPENAI_KEY) return null;
+            try {
+                const prompt = `Context: Technical Interview. Question: "${question}" Target Concept: "${concept}" User Answer: "${answer}" Task: Determine if the User Answer conceptually matches the Target Concept. Ignore lack of specific keywords if the meaning is correct. Return ONLY raw JSON: {"correct": boolean, "score": number (0-100), "reason": "brief explanation" }`;
+                const r = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_KEY}` },
+                    body: JSON.stringify({ model: "gpt-4o", messages: [{ role: "system", content: "You are a strict semantic auditor. Return only JSON." }, { role: "user", content: prompt }] })
+                });
+                const d = await r.json();
+                return JSON.parse(d.choices[0].message.content.replace(/```json|```/g, '').trim());
+            } catch (e) { return null; }
+        }
+
+        async function callChatGPT(prompt, context = "") {
+            if (!OPENAI_KEY) return null;
+            try {
+                const r = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_KEY}` },
+                    body: JSON.stringify({
+                        model: "gpt-4o",
+                        messages: [
+                            { role: "system", content: "You are the Neural Robust Agent for InternHub Elite. Be professional and technical. Incorporate relevant Wikipedia context if provided." },
+                            { role: "user", content: context ? `Context: ${context}\n\nUser Question: ${prompt}` : prompt }
+                        ]
+                    })
+                });
+                const d = await r.json(); return d.choices[0].message.content;
+            } catch (e) { return null; }
+        }
+
+        async function handleAgentTalk(e) {
+            if (e.key === "Enter") {
+                const box = document.getElementById('agent-history'), v = e.target.value.trim();
+                if (!v) return;
+                AI_ANALYZER.analyze(v);
+                box.innerHTML += `<div class='flex justify-end mb-4 animate-in slide-in-from-right-2'><div class='bg-indigo-600 p-4 rounded-2xl rounded-tr-none max-w-[85%] text-white font-medium'>${v}</div></div>`;
+                e.target.value = "";
+                document.getElementById('agent-status-text').innerText = "Processing...";
+
+                let wikiInfo = null;
+                const lower = v.toLowerCase();
+                if (lower.includes("what is") || lower.includes("explain") || lower.includes("define") || lower.includes("tell me about") || lower.includes("research")) {
+                    const query = v.replace(/what is|explain|define|tell me about|research|\?/gi, "").trim();
+                    wikiInfo = await fetchWikipedia(query);
+                }
+
+                let response = OPENAI_KEY ? await callChatGPT(v, wikiInfo) : null;
+
+                if (!response) {
+                    if (wikiInfo) response = wikiInfo;
+                    else {
+                        let bestMatch = null, maxScore = 0;
+                        DB.ai.conceptCloud.forEach(cp => {
+                            let score = AI_ANALYZER.semanticMatch(v, cp.k);
+                            if (score > maxScore) { maxScore = score; bestMatch = cp; }
+                        });
+                        response = (bestMatch && maxScore > 0.3) ? bestMatch.r : "Neutral Synapse confirmed. Processing locally...";
+                    }
+                }
+
+                setTimeout(() => {
+                    box.innerHTML += `<div class='flex mb-4 animate-in slide-in-from-left-2'><div class='bg-white/5 border border-white/10 p-4 rounded-2xl rounded-tl-none max-w-[85%] text-slate-300'>${response}</div></div>`;
+                    box.scrollTop = box.scrollHeight;
+                    document.getElementById('agent-status-text').innerText = "Neural Robust Agent";
+                    AI_VOICE.speak(response);
+                }, 500);
+            }
+        }
+        setTimeout(updateGPTStatus, 1000);
+    </script>
+</body>
+
+</html>
