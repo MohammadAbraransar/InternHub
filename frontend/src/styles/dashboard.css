@@ -1,0 +1,47 @@
+.dashboard {
+  padding: 25px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dashboard-header h2 {
+  color: #203a43;
+}
+
+.dashboard-header button {
+  padding: 8px 14px;
+  background: #203a43;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dashboard-header button:hover {
+  background: #2c5364;
+}
+
+.dashboard-welcome {
+  color: #333;
+  margin-bottom: 25px;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  color: #333;          /* 🔥 IMPORTANT */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  font-weight: 500;
+}
